@@ -1,0 +1,408 @@
+﻿@model JiraTicketingToolViewModel
+<style>
+    .form-heading {
+        background-color: #f2f2f2;
+        padding: 10px;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    form {
+        background-color: #fff;
+        padding: 20px;
+        border: 1px solid #ccc;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    select {
+        width: 100%;
+        height: 40px;
+        padding: 5px;
+        font-size: 16px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+    }
+
+    .required:after {
+        content: "*";
+        color: red;
+        margin-left: 5px;
+    }
+
+    select#SelectedTask, select#SelectedStory {
+        width: 100%;
+    }
+
+    #reset-btn {
+        float: right;
+        margin-bottom: 10px;
+    }
+
+    .StoryOptions div {
+        display: inline-block;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+        .StoryOptions div select {
+            width: 100%;
+        }
+
+    .js-select2, .select2-container {
+        width: 100% !important;
+    }
+
+
+    /* Adjust radio button width */
+    input[type="radio"] {
+        width: 1.2em;
+        height: 1.2em;
+        vertical-align: middle;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+</style>
+
+
+<div class="form-heading">Form</div>
+
+<form onsubmit="return submitDetails()">
+
+
+    <div>
+        <label for="Initiative-dropdown">Initiatives<span class="required"></span></label>
+        @Html.DropDownListFor(m => m.SelectedInitiative, Model.InitiativeSelectList, "Select an Initiative", new { @class = "js-select2" })
+    </div>
+    <div>
+        <label for="project-dropdown">Project List<span class="required"></span></label>
+        @Html.DropDownListFor(m => m.SelectedProject, Model.ProjectSelectList, "Select a project", new { @class = "js-select2" })
+
+    </div>
+    <div>
+        <label for="epic-dropdown">Epic List<span class="required"></span></label>
+        @Html.DropDownListFor(m => m.SelectedEpic, Model.EpicSelectList, "Select an epic", new { @class = "js-select2" })
+
+    </div>
+    <div>
+    </div>
+
+    <div class="StoryOptions" id="IdNoStoryOption" style="display:none">
+        <div class="form-group ">
+            <div class="col-md-12">
+                <label for="Task-dropdown">Task List<span class="required"></span></label>
+                @Html.DropDownListFor(m => m.SelectedTask, Model.TaskSelectList, "Select a Task", new { @class = "js-select2" })
+
+            </div>
+            <div>
+                <label for="Story-dropdown">Story List<span class="required"></span></label>
+                @Html.DropDownListFor(m => m.SelectedStory, Model.StorySelectList, "Select a Story", new { @class = "js-select2" })
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="divYesShowStory" style="display:none">
+        <select id="selIssueType">
+            <option>Select Issue Type</option>
+            <option value="Task">Task</option>
+            <option value="Story">Story</option>
+        </select>
+    </div>
+
+    <div class="modal" tabindex="-1" role="dialog" id="IdiSTaskOrStoryDiv" aria-labelledby="modalTask" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Story or Task </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeModal();">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="iSTaskOrStoryDiv">
+                        <div class="form-group">
+                            <label for="Task-dropdown">Do you want to create a Task/Story<span class="required"></span></label>
+                            <label>
+                                <input type="radio" name="taskStory" value="Yes" />
+                                @* @Html.RadioButtonFor(Model=>Model.iSTaskOrStory ,true)*@ Yes
+                            </label>
+                            <label>
+                                @*@Html.RadioButtonFor(Model=>Model.iSTaskOrStory ,false)*@
+                                <input type="radio" name="taskStory" value="No" />
+                                No
+                            </label>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    @*  <button type="button" class="btn btn-primary" >Save</button>*@
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeModal();">Close</button>
+                </div>
+            </div>
+
+        </div>
+
+
+
+    </div>
+
+    <div class="row">
+            <div class="col-6">
+                <div class="form-group">
+                    <label for="summary">Summary:</label>
+                    <textarea id="summary" name="summary" rows="3" cols="50"></textarea>
+                </div>
+               
+            </div>
+            <div class="col-6">
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" rows="6" cols="50"></textarea>
+                </div>
+            </div>
+        
+    </div>
+
+
+    <button type="button" class="btn btn-primary" onclick="resetPage()">Reset</button>
+    <input type="submit" class="btn btn-primary" value="Submit" />
+
+</form>
+
+@section scripts {
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+
+
+    <script>
+        function closeModal() {
+            $('#IdiSTaskOrStoryDiv').modal('hide');
+        }
+        function resetPage() {
+            location.reload(true);
+        }
+        $(function () {
+            // Initialize Select2 dropdowns
+            $('.js-select2').select2();
+
+            // Handle reset button click
+            // Handle reset button click
+            $('#reset-btn').on('click', function () {
+                $('.js-select2').val(null).trigger('change');
+
+            });
+            $(document).ready(function () {
+                var storyDiv = $('.StoryOptions');
+                $('#SelectedStory').removeAttr("disabled", 'disabled');
+                $('.iSTaskOrStoryDiv input[type="radio"]').change(function () {
+                    if ($(this).val() == "Yes") {
+                        $("#divYesShowStory").css({ "display": "block" });
+                        $("#IdNoStoryOption").css({ "display": "none" });
+                    } else {
+                        $("#IdNoStoryOption").css({ "display": "block" });
+                        $("#divYesShowStory").css({ "display": "none" });
+                    }
+                    console.log($(this).val())
+                });
+
+
+            });
+
+            // Handle description dropdown change event
+            $('#SelectedInitiative').on('change', function () {
+                var description = $(this).val();
+                if (description) {
+                    $.ajax({
+                        url: '@Url.Action("GetProjects", "JiraTicketingTool")',
+                        data: { description: description },
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (data) {
+                            var projectDropdown = $('#SelectedProject');
+                            projectDropdown.empty();
+                            projectDropdown.append($('<option>').attr('value', ''));
+                            $.each(data, function (index, item) {
+                                projectDropdown.append($('<option jiraKey="' + item.jiraProjectKey + '">').text(item.jiraProjectName).attr('value', item.jiraProjectName));
+
+                            });
+                            //projectDropdown.trigger('change');
+                        }
+                    });
+                }
+                else {
+                    var projectDropdown = $('#SelectedProject');
+                    projectDropdown.empty();
+                    projectDropdown.append($('<option>').attr('value', ''));
+                    projectDropdown.trigger('change');
+                }
+            });
+
+            $('#SelectedProject').on('change', function () {
+                var InitiativeName = $('#SelectedInitiative').val();
+                var ProjectName = $(this).val();
+
+
+                if (InitiativeName != "" && ProjectName != "") {
+                    $.ajax({
+                        url: '@Url.Action("GetEpics", "JiraTicketingTool")',
+                        data: { description: InitiativeName, project: ProjectName },
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (data) {
+                            var epicDropdown = $('#SelectedEpic');
+                            epicDropdown.empty();
+                            epicDropdown.append($('<option>').attr('value', ''));
+                            $.each(data, function (index, item) {
+                                epicDropdown.append($('<option issueKey="' + item.issueKey + '">').text(item.epicName).attr('value', item.epicName));
+                            });
+                            // epicDropdown.trigger('change');
+                        }
+                    });
+                }
+                else {
+                    var epicDropdown = $('#SelectedEpic');
+                    epicDropdown.empty();
+                    epicDropdown.append($('<option>').attr('value', ''));
+                    epicDropdown.trigger('change');
+                }
+            });
+
+            $('#SelectedEpic').on('change', function () {
+                var EpicName = $(this).val();
+                var ProjectName = $('#SelectedProject').val();
+                // alert('fi');
+                $('#IdiSTaskOrStoryDiv').modal('show');
+                if (ProjectName != "" && EpicName != "") {
+                    $.ajax({
+                        url: '@Url.Action("GetTasks", "JiraTicketingTool")',
+                        data: { description: EpicName, project: ProjectName },
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (data) {
+                            var TaskDropdown = $('#SelectedTask');
+                            TaskDropdown.empty();
+                            TaskDropdown.append($('<option>').attr('value', 'select'));
+                            $.each(data, function (index, item) {
+                                TaskDropdown.append($('<option issueKey="' + item.issueKey + '">').text(item.taskName).attr('value', item.taskName));
+                            });
+                            // TaskDropdown.trigger('change');
+                            $('#SelectedStory').removeAttr("disabled", 'disabled');
+
+                        }
+                    });
+                }
+                else {
+                    var TaskDropdown = $('#SelectedTask');
+                    TaskDropdown.empty();
+                    TaskDropdown.append($('<option>').attr('value', ''));
+                    TaskDropdown.trigger('change');
+                }
+            });
+
+            $("#SelectedTask").on('change', function () {
+                if ($(this).val() == "select") {
+                    $('#SelectedStory').removeAttr("disabled", 'disabled');
+                } else {
+                    $('#SelectedStory').attr("disabled", 'disabled');
+                }
+            });
+
+            $('#SelectedEpic').on('change', function () {
+                var EpicName = $(this).val();
+                var ProjectName = $('#SelectedProject').val();
+                if (ProjectName != "" && EpicName != "") {
+                    $.ajax({
+                        url: '@Url.Action("GetStory", "JiraTicketingTool")',
+                        data: { description: EpicName, project: ProjectName },
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (data) {
+                            var TaskDropdown = $('#SelectedStory');
+                            TaskDropdown.empty();
+                            TaskDropdown.append($('<option>').attr('value', ''));
+                            $.each(data, function (index, item) {
+                                TaskDropdown.append($('<option issueKey="' + item.issueKey + '">').text(item.storyDesc).attr('value', item.storyDesc));
+                            });
+                            //  TaskDropdown.trigger('change');
+                            $('#SelectedStory').removeAttr("disabled", 'disabled');
+
+                        }
+                    });
+                }
+                else {
+                    var TaskDropdown = $('#SelectedStory');
+                    TaskDropdown.empty();
+                    TaskDropdown.append($('<option>').attr('value', ''));
+                    TaskDropdown.trigger('change');
+                }
+            });
+
+
+
+        });
+
+        function submitDetails() {
+            console.log('1');
+            // $("#SubmitButton").on("click", submitDetails);
+            var initiatives = $("#SelectedInitiative").find('option:selected').val();
+            var projectName = $("#SelectedProject").find('option:selected');
+            var projectJiraKey = projectName.attr('jiraKey');
+            projectName = projectName.val();
+            var epicName = $("#SelectedEpic").find('option:selected');
+            var epicIssueKey = epicName.attr('issueKey');
+            var formData = new FormData();
+
+            var taskelement = $("#SelectedTask").find('option:selected');
+            var taskOrStoryIssueKey = taskelement.attr('issueKey');
+            // var storyIssueKey="";
+            if (taskelement.val() == 'select') {
+                var storylement = $("#SelectedStory").find('option:selected');
+                taskOrStoryIssueKey = storylement.attr('issueKey');
+            }
+            //formData.append('initiatives', initiatives);
+            //formData.append('projectName', projectName);
+            //formData.append('projectJiraKey', projectJiraKey);
+            //formData.append('epicIssueKey', epicIssueKey);
+            //formData.append('taskOrStoryIssueKey', taskOrStoryIssueKey);
+            var issueType = "";
+            if (document.querySelector('input[name="taskStory"]:checked').value == 'Yes') {
+                issueType = $("#selIssueType").find('option:selected').val();
+            }
+             else {
+                taskOrStoryIssueKey = taskOrStoryIssueKey;
+             }
+
+            console.log(initiatives, projectName, projectJiraKey, epicIssueKey, taskOrStoryIssueKey);
+
+            //  New code to send a post request with Basic Authentication
+            $.ajax({
+                url: '@Url.Action("CreateJiraTicket", "JiraTicketingTool")',
+                data: { projectJiraKey: projectJiraKey, epicIssueKey: epicIssueKey, issueType: issueType, issueKey: taskOrStoryIssueKey },
+                type: 'post',
+                dataType: 'json',
+                success: function (data) {
+                    console.log(data)
+                }
+            });
+            return false;
+        }
+
+
+    </script>
+    }
+
