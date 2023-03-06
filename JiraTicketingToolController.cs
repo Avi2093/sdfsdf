@@ -204,9 +204,9 @@ namespace Ticketingtool.Controllers
             try
             {
 
-                string username = "officialidofmine1993@gmail.com";
-                string password = "ATATT3xFfGF0Q34eDaKu3efpNsBb9eStyY6mLfPLxVlMz0m-zGY3mElJ8cAfUhaIVomGAJlX4gYdrfFFfsaSbahQ4sSToEwp8QOB6RXnBToa48BQ25udfVbUTrhlar4ysf8Km9E1Fa_s17lFUc4Vph0q4mR0_8z9BLLAgFPd4sWu181pusdDTQI=7BE027BD";
-                string URL = "geek1121.atlassian.net";
+                string username = "abcd@gmail.com";
+                string password = " ";
+                string URL = "baseurl.atlassian.net";
 
                 var client = new RestClient("https://" + URL + "/rest/api/2/issue/");
                 client.Authenticator = new HttpBasicAuthenticator(username, password);
