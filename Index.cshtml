@@ -1,4 +1,4 @@
-﻿@model JiraTicketingToolViewModel
+@model JiraTicketingToolViewModel
 <style>
     .form-heading {
         background-color: #f2f2f2;
@@ -66,6 +66,11 @@
         vertical-align: middle;
     }
 
+    .scrollable {
+        height: 200px; /* set the height of the scrollable area */
+        overflow: auto; /* enable scrolling */
+    }
+
     .form-group {
         margin-bottom: 1rem;
     }
@@ -74,98 +79,98 @@
 
 
 <div class="form-heading">Form</div>
+<div style="overflow-x: auto;">
+    <form onsubmit="return submitDetails()">
 
-<form onsubmit="return submitDetails()">
+
+        <div>
+            <label for="Initiative-dropdown">Initiatives<span class="required"></span></label>
+            @Html.DropDownListFor(m => m.SelectedInitiative, Model.InitiativeSelectList, "Select an Initiative", new { @class = "js-select2" })
+        </div>
+        <div>
+            <label for="project-dropdown">Project List<span class="required"></span></label>
+            @Html.DropDownListFor(m => m.SelectedProject, Model.ProjectSelectList, "Select a project", new { @class = "js-select2" })
+
+        </div>
+        <div>
+            <label for="epic-dropdown">Epic List<span class="required"></span></label>
+            @Html.DropDownListFor(m => m.SelectedEpic, Model.EpicSelectList, "Select an epic", new { @class = "js-select2" })
+
+        </div>
+        <div>
+        </div>
+
+        <div class="StoryOptions" id="IdNoStoryOption" style="display:none">
+            <div class="form-group ">
+                <div class="col-md-12">
+                    <label for="Task-dropdown">Task List<span class="required"></span></label>
+                    @Html.DropDownListFor(m => m.SelectedTask, Model.TaskSelectList, "Select a Task", new { @class = "js-select2" })
+
+                </div>
+                <div>
+                    <label for="Story-dropdown">Story List<span class="required"></span></label>
+                    @Html.DropDownListFor(m => m.SelectedStory, Model.StorySelectList, "Select a Story", new { @class = "js-select2" })
 
 
-    <div>
-        <label for="Initiative-dropdown">Initiatives<span class="required"></span></label>
-        @Html.DropDownListFor(m => m.SelectedInitiative, Model.InitiativeSelectList, "Select an Initiative", new { @class = "js-select2" })
-    </div>
-    <div>
-        <label for="project-dropdown">Project List<span class="required"></span></label>
-        @Html.DropDownListFor(m => m.SelectedProject, Model.ProjectSelectList, "Select a project", new { @class = "js-select2" })
-
-    </div>
-    <div>
-        <label for="epic-dropdown">Epic List<span class="required"></span></label>
-        @Html.DropDownListFor(m => m.SelectedEpic, Model.EpicSelectList, "Select an epic", new { @class = "js-select2" })
-
-    </div>
-    <div>
-    </div>
-
-    <div class="StoryOptions" id="IdNoStoryOption" style="display:none">
-        <div class="form-group ">
-            <div class="col-md-12">
-                <label for="Task-dropdown">Task List<span class="required"></span></label>
-                @Html.DropDownListFor(m => m.SelectedTask, Model.TaskSelectList, "Select a Task", new { @class = "js-select2" })
-
-            </div>
-            <div>
-                <label for="Story-dropdown">Story List<span class="required"></span></label>
-                @Html.DropDownListFor(m => m.SelectedStory, Model.StorySelectList, "Select a Story", new { @class = "js-select2" })
-
+                </div>
 
             </div>
 
         </div>
 
-    </div>
+        <div id="divYesShowStory" style="display:none">
+            <select id="selIssueType">
+                <option>Select Issue Type</option>
+                <option value="Task">Task</option>
+                <option value="Story">Story</option>
+            </select>
+        </div>
 
-    <div id="divYesShowStory" style="display:none">
-        <select id="selIssueType">
-            <option>Select Issue Type</option>
-            <option value="Task">Task</option>
-            <option value="Story">Story</option>
-        </select>
-    </div>
+        <div class="modal" tabindex="-1" role="dialog" id="IdiSTaskOrStoryDiv" aria-labelledby="modalTask" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Story or Task </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeModal();">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="iSTaskOrStoryDiv">
+                            <div class="form-group">
+                                <label for="Task-dropdown">Do you want to create a Task/Story<span class="required"></span></label>
+                                <label>
+                                    <input type="radio" name="taskStory" value="Yes" />
+                                    @* @Html.RadioButtonFor(Model=>Model.iSTaskOrStory ,true)*@ Yes
+                                </label>
+                                <label>
+                                    @*@Html.RadioButtonFor(Model=>Model.iSTaskOrStory ,false)*@
+                                    <input type="radio" name="taskStory" value="No" />
+                                    No
+                                </label>
+                            </div>
 
-    <div class="modal" tabindex="-1" role="dialog" id="IdiSTaskOrStoryDiv" aria-labelledby="modalTask" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Story or Task </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeModal();">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="iSTaskOrStoryDiv">
-                        <div class="form-group">
-                            <label for="Task-dropdown">Do you want to create a Task/Story<span class="required"></span></label>
-                            <label>
-                                <input type="radio" name="taskStory" value="Yes" />
-                                @* @Html.RadioButtonFor(Model=>Model.iSTaskOrStory ,true)*@ Yes
-                            </label>
-                            <label>
-                                @*@Html.RadioButtonFor(Model=>Model.iSTaskOrStory ,false)*@
-                                <input type="radio" name="taskStory" value="No" />
-                                No
-                            </label>
                         </div>
-
+                    </div>
+                    <div class="modal-footer">
+                        @*  <button type="button" class="btn btn-primary" >Save</button>*@
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeModal();">Close</button>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    @*  <button type="button" class="btn btn-primary" >Save</button>*@
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="closeModal();">Close</button>
-                </div>
+
             </div>
+
+
 
         </div>
 
-
-
-    </div>
-
-    <div class="row">
+        <div class="row">
             <div class="col-6">
                 <div class="form-group">
                     <label for="summary">Summary:</label>
                     <textarea id="summary" name="summary" rows="3" cols="50"></textarea>
                 </div>
-               
+
             </div>
             <div class="col-6">
                 <div class="form-group">
@@ -173,14 +178,81 @@
                     <textarea id="description" name="description" rows="6" cols="50"></textarea>
                 </div>
             </div>
-        
-    </div>
+
+        </div>
 
 
-    <button type="button" class="btn btn-primary" onclick="resetPage()">Reset</button>
-    <input type="submit" class="btn btn-primary" value="Submit" />
+        @*For Actual start Date and End Date*@
+        <div class="form-group row">
+            <div class="col-12">
+                <h3 style="width:100%">Other Fields</h3>
+                <hr style="border: 2px solid black;">
+            </div>
+            <div class="col-3">
+                <label for="actualStartDate">Actual start date:</label>
+                <input type="date" id="actualStartDate" name="actualStartDate">
+            </div>
+            <div class="col-3">
+                <label for="actualEndDate">Actual end date:</label>
+                <input type="date" id="actualEndDate" name="actualEndDate">
+            </div>
+            <div class="col-3">
+                <label for="prodReleaseDate">Production Release Date:</label>
+                <input type="datetime-local" id="prodReleaseDate" name="prodReleaseDate">
+            </div>
+            <div class="col-3">
+                <label for="dueDate">Due Date:</label>
+                <input type="datetime-local" id="dueDate" name="dueDate">
+            </div>
+            <div class="col-3">
+                <label for="isBacklog">Is Backlog:</label>
+                <select id="isBacklog" name="isBacklog">
+                    <option value="Yes" selected>Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+            <div class="col-3">
+                <label for="ragStatus">RAG Status:</label>
+                <select id="ragStatus" name="ragStatus">
+                    <option value="Red">Red</option>
+                    <option value="Amber">Amber</option>
+                    <option value="Green">Green</option>
+                </select>
+            </div>
+            <div class="col-3">
+                <label for="billingEffort">Billing Effort:</label>
+                <select id="billingEffort" name="billingEffort">
+                    <option value="Billable">Billable</option>
+                    <option value="Non Billable">Non Billable</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <label for="requesterDetails">Requester Details:</label>
+                <input type="text" id="requesterDetails" name="requesterDetails" style="width: 50%">
 
-</form>
+            </div>
+            <div class="col-4">
+                <label for="sdTicketNo">SD Ticket No:</label>
+                <input type="text" id="sdTicketNo" name="sdTicketNo">
+            </div>
+        </div>
+
+
+        <div class="row justify-content-end">
+            <div class="col-auto">
+                <input type="submit" class="btn btn-primary" value="Submit" />
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-primary" onclick="resetPage()">Reset</button>
+            </div>
+
+        </div>
+
+
+
+
+    </form>
+</div>
 
 @section scripts {
 
@@ -383,9 +455,9 @@
             if (document.querySelector('input[name="taskStory"]:checked').value == 'Yes') {
                 issueType = $("#selIssueType").find('option:selected').val();
             }
-             else {
+            else {
                 taskOrStoryIssueKey = taskOrStoryIssueKey;
-             }
+            }
 
             console.log(initiatives, projectName, projectJiraKey, epicIssueKey, taskOrStoryIssueKey);
 
