@@ -371,6 +371,7 @@ namespace Ticketingtool.Controllers
                 var response = client.Execute(request);
 
                 return Json(response);
+                TriggerEmailIfNeeded(response);
             }
             catch (Exception ex)
             {
@@ -378,6 +379,28 @@ namespace Ticketingtool.Controllers
             }
         }
 
+ public void TriggerEmailIfNeeded(IRestResponse response)
+        {
+            // Check if the response contains an ID, key, and self
+            JObject json = JObject.Parse(response.Content);
+            if (json["id"] != null && json["key"] != null && json["self"] != null)
+            {
+                // Check if the response contains any error codes
+                if ((int)response.StatusCode >= 400 && (int)response.StatusCode <= 599)
+                {
+                    Console.WriteLine("API returned an error status code: " + response.StatusCode);
+                }
+                else
+                {
+                    // Trigger the email here
+                    Console.WriteLine("Email triggered!");
+                }
+            }
+            else
+            {
+                Console.WriteLine("API response did not contain an ID, key, and self");
+            }
+        }
 
 
 
