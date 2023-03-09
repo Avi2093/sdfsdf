@@ -17,3 +17,8 @@
                               .Build();
                 options.Filters.Add(new AuthorizeFilter(policy));
             });
+
+var lob = _context.JiraTaskDetails
+    .Where(j => SqlFunctions.PatIndex("%" + description + "%", j.description) > 0 && j.issuetype == "Initiative")
+    .Select(j => j.LOB)
+    .FirstOrDefault();
