@@ -58,7 +58,7 @@ namespace Ticketingtool.Controllers
                     EpicSelectList = new SelectList(new List<SelectListItem>()), // Initialize the third dropdown with an empty list.
                     TaskSelectList = new SelectList(new List<SelectListItem>()), // Initialize the fourth dropdown with an empty list.
                     StorySelectList = new SelectList(new List<SelectListItem>()),
-                    SubStatusSelectList = new List<SelectListItem>() // Initialize the fifth dropdown with an empty list.
+                    SubStatusSelectList = new List<SelectListItem>(), // Initialize the fifth dropdown with an empty list.
                 };
 
                 // Get all distinct statuses from the jirastatus table.
@@ -286,6 +286,41 @@ namespace Ticketingtool.Controllers
             return Json(employees);
         }
 
+        public IActionResult GetJiraWorkstream()
+        {
+            try
+            {
+                // Get all distinct project categories from the jira_workstreams table.
+                var projectCategories = _context.jira_workstreams
+                    .Select(j => j.projectCategoryName)
+                    .Distinct()
+                    .ToList();
+
+                // Create a select list for the project category dropdown.
+                var projectCategorySelectList = new SelectList(projectCategories);
+
+                // Return a JSON result with the select list data.
+                return Json(projectCategorySelectList);
+            }
+            catch (Exception ex)
+            {
+                // Return an error JSON result.
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+        public IActionResult GetActivity()
+        {
+            var activityTypes = _context.JiraTaskDetails
+                .Select(a => a.activityType)
+                .Distinct()
+                .ToList();
+
+            return Json(activityTypes);
+        }
+
+
+
+
 
 
 
@@ -420,6 +455,9 @@ namespace Ticketingtool.Controllers
                 return BadRequest("An error occurred while processing your request. Please try again later.");
             }
         }
+
+
+    }
 
 }
 
