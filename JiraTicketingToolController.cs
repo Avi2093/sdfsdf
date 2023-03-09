@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Ticketingtool.Controllers
 {
@@ -47,7 +48,7 @@ namespace Ticketingtool.Controllers
 
                 // Create a select list for the description dropdown.
                 var descriptionSelectList = new SelectList(initiatives);
-                
+
 
 
                 // Create a view model for the index view.
@@ -70,11 +71,7 @@ namespace Ticketingtool.Controllers
                 var statusSelectList = new SelectList(statusList);
                 viewModel.StatusSelectList = statusSelectList;
 
-                // Create a list of SelectListItem objects for the SubStatusSelectList property of the view model.
-               // var subStatusSelectList = new SelectList(statusList);
-                //viewModel.SubStatusSelectList = subStatusSelectList.Select(x => new SelectListItem { Text = x.Text, Value = x.Value }).ToList();
-
-                // Updated assignment
+              
 
                 return View(viewModel);
             }
@@ -124,8 +121,8 @@ namespace Ticketingtool.Controllers
             {
                 // Get all distinct jiraProjectName values for the selected description.
                 var projects = _context.JiraTaskDetails
-                    //.Where(j => j.description == description)
-                    .Where(j => j.description.Contains(description))
+                    .Where(j => j.description == description)
+                    //.Where(j => j.description.Contains(description))
                     .Select(j => new JiraTaskDetail
                     {
                         jiraProjectName = j.jiraProjectName,
@@ -335,8 +332,8 @@ namespace Ticketingtool.Controllers
             try
             {
 
-                string username = "officialidofmine1993@gmail.com";
-                string password = "ATATT3xFfGF0Q34eDaKu3efpNsBb9eStyY6mLfPLxVlMz0m-zGY3mElJ8cAfUhaIVomGAJlX4gYdrfFFfsaSbahQ4sSToEwp8QOB6RXnBToa48BQ25udfVbUTrhlar4ysf8Km9E1Fa_s17lFUc4Vph0q4mR0_8z9BLLAgFPd4sWu181pusdDTQI=7BE027BD";
+                string username = " ";
+                string password = " ";
                 string URL = "geek1121.atlassian.net";
 
                 var client = new RestClient("https://" + URL + "/rest/api/2/issue/");
@@ -344,31 +341,7 @@ namespace Ticketingtool.Controllers
                 var request = new RestRequest(Method.POST);
 
                 var jsonString = string.Empty;
-                //if (!string.IsNullOrEmpty(issueType))
-                //{
-                //    var str = new Fields
-                //    {
-                //        description = "Creating of an issue using project keys and issue type names using the REST API Test123",
-                //        summary = "REST ye merry gentlemen Test123",
-                //        project = new Project { key = projectJiraKey },
-                //        issuetype = new IssueType { name = issueType },
-                //        parent = new Parent { key = epicIssueKey }
-                //    };
-                //    jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(str);
-                //}
-                //else
-                //{
-                //    string taskType = "Sub-Task";
-                //    var str = new Fields
-                //    {
-                //        description = "Creating of an issue using project keys and issue type names using the REST API Test123",
-                //        summary = "REST ye merry gentlemen Test123",
-                //        project = new Project { key = projectJiraKey },
-                //        issuetype = new IssueType { name = taskType },
-                //        parent = new Parent { key = issueKey }
-                //    };
-                //    jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(str);
-                //}
+
 
                 var str = new Fields
                 {
@@ -376,14 +349,22 @@ namespace Ticketingtool.Controllers
                     summary = requestTaskDetails.summary,
                     project = new Project { key = requestTaskDetails.projectJiraKey },
                     issuetype = new IssueType { name = requestTaskDetails.taskType },
-                    parent = new Parent { key = requestTaskDetails.epicIssueKey != "null" ? requestTaskDetails.epicIssueKey : requestTaskDetails.issueKey }
+                    parent = new Parent { key = requestTaskDetails.epicIssueKey != "null" ? requestTaskDetails.epicIssueKey : requestTaskDetails.issueKey },
+                    assignee = new Assignee { name = requestTaskDetails.employeeEmail },
+                    customfield_10925 = requestTaskDetails.isBacklog,
+                    customfield_10658 = new customfield_10658 { value= requestTaskDetails.ragStatus },
+                    customfield_10843 = new customfield_10843 { value= requestTaskDetails.billingEffort },
+                    customfield_11018 = new customfield_11018 { value= requestTaskDetails.workstream },
+                    
+                    customfield_10841= requestTaskDetails.actualStartDate,
+                    customfield_10842 = requestTaskDetails.actualEndDate,
+                    customfield_10828 = new customfield_10828 { value = requestTaskDetails.status },
+                    customfield_10829 = new customfield_10829 { value = requestTaskDetails.subStatus },
+                    customfield_10088 = new customfield_10088 { value = requestTaskDetails.activityType },
+                    priority = new priority { name = requestTaskDetails.priority },
+                    customfield_10691 = new customfield_10691 { value = requestTaskDetails.origonCountry },
                 };
                 jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(str);
-
-
-
-                //   var dynamicObject = JsonConvert.SerializeObject<dynamic>(str)!;
-                //var json1 = new JavaScriptSerializer().Serialize(str);
 
                 JObject json = JObject.Parse(jsonString);
                 //request.AddJsonBody(json);
@@ -392,63 +373,30 @@ namespace Ticketingtool.Controllers
                 request.AddHeader("Content-Type", "application/json");
                 request.AddParameter("application/json", json, ParameterType.RequestBody);
                 IRestResponse response = client.Execute(request);
-                // Console.WriteLine("Issue: {0} successfully created", response.Content);
-
-                //var email = new MimeMessage();
-                //email.Sender = MailboxAddress.Parse("narayan@avitester.com");
-                //email.To.Add(MailboxAddress.Parse("muzafarmmulla@gmail.com"));
-                //email.Subject = "Test subject";
-                //var builder = new BodyBuilder();
-                //if (mailRequest.Attachments != null)
-                //{
-                //    byte[] fileBytes;
-                //    foreach (var file in mailRequest.Attachments)
-                //    {
-                //        if (file.Length > 0)
-                //        {
-                //            using (var ms = new MemoryStream())
-                //            {
-                //                file.CopyTo(ms);
-                //                fileBytes = ms.ToArray();
-                //            }
-                //            builder.Attachments.Add(file.FileName, fileBytes, ContentType.Parse(file.ContentType));
-                //        }
-                //    }
-                //}
-                //builder.HtmlBody = "Test body";
-                //email.Body = builder.ToMessageBody();
-                //using var smtp = new SmtpClient();
-                //smtp.Connect("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
-                //smtp.Authenticate("narayan@avitester.com", "HGFG#%@&$2223");
-                // smtp.SendAsync(email);
-                //smtp.Disconnect(true);
-
-                //using (MailMessage mm = new MailMessage("muzafarmmulla@gmail.com", "narayan@avitester.com"))
-                //{
-                //    mm.Subject ="Test Mail";
-                //    mm.Body = "Ticket created";
-                //    //if (model.Attachment.Length > 0)
-                //    //{
-                //    //    string fileName = Path.GetFileName(model.Attachment.FileName);
-                //    //    mm.Attachments.Add(new Attachment(model.Attachment.OpenReadStream(), fileName));
-                //    //}
-                //    mm.IsBodyHtml = false;
-                //    using (SmtpClient smtp = new SmtpClient())
-                //    {
-                //        System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
-                //        smtp.Host = "smtp.gmail.com";
-                //        smtp.EnableSsl = true;
-                //        NetworkCredential NetworkCred = new NetworkCredential("muzafarmmulla@gmail.com", "mrugqsawpoaygvmf");
-                //        smtp.UseDefaultCredentials = false;
-                //        smtp.Credentials = NetworkCred;
-                //        smtp.Port = 587;
-                //        smtp.Send(mm);
-                //        ViewBag.Message = "Email sent.";
-                //    }
-                //}
-
+               
+               
                 // Return the select list as JSON.
-                return Json(response.Content);
+                return Json(response);
+
+
+                if (response.IsSuccessful == true)
+                {
+                    //mail
+                }
+                if (response.ErrorMessage != null)
+                {
+                    //error
+                }
+
+
+
+
+
+
+
+
+
+
             }
             catch (Exception ex)
             {
@@ -474,6 +422,39 @@ public class Fields
     public Parent parent { get; set; }
     public string summary { get; set; }
     public string description { get; set; }
+
+    
+    public Assignee assignee { get; set; }
+
+
+    //Custom fields IsBacklog
+    public string customfield_10925 { get; set; }
+
+    //RAG Status:
+    public customfield_10658 customfield_10658 { get; set; }
+
+    //Billing Effort:
+    public customfield_10843 customfield_10843 { get; set; }
+
+    //work stream
+    public customfield_11018 customfield_11018 { get; set; }
+
+    //startdate
+    public DateTime customfield_10841 { get; set; }
+    //Endate
+    public DateTime customfield_10842 { get; set; }
+
+    //status
+    public customfield_10828 customfield_10828 { get; set; }
+    //sub stauts
+    public customfield_10829 customfield_10829 { get; set; }
+    //Activity Type
+    public customfield_10088 customfield_10088 { get; set; }
+    //priority
+    public priority priority { get; set; }
+    //Originating Country/Group
+    public customfield_10691 customfield_10691 { get; set; }
+
 }
 
 public class Project
@@ -490,6 +471,55 @@ public class IssueType
     public string name { get; set; }
 
 }
+public class Assignee
+{
+    public string name { get; set; }
+
+}
+
+//workstream
+public class customfield_11018
+{
+    public string value { get; set; }
+}
+
+//RagStatus
+public class customfield_10658
+{
+    public string value { get; set; }
+}
+//Billing Effort
+public class customfield_10843
+{
+    public string value { get; set; }
+}
+//status
+public class customfield_10828
+{
+    public string value { get; set; }
+}
+
+//SubStatus
+public class customfield_10829
+{
+    public string value { get; set; }
+}
+//Activity Type
+public class customfield_10088
+{
+    public string value { get; set; }
+}
+
+public class priority
+{
+    public string name { get; set; }
+}
+
+//Originating Country/Group
+public class customfield_10691
+{
+    public string value { get; set; }
+}
 
 
 
@@ -505,51 +535,3 @@ public class IssueType
 
 
 
-
-
-//public IActionResult SendDetailTosJiraAPI()
-//{
-
-//    string apiUrl = @"https://URL/rest/api/3/search?jql=project=ProjectName&maxResults=10";
-
-
-//    using (var httpClient = new HttpClient())
-//    {
-//        using (var request = new HttpRequestMessage(new HttpMethod("GET"), apiUrl))
-//        {
-//            var base64authorization =
-//                Convert.ToBase64String(Encoding.ASCII.GetBytes("emailId:CU2NhBYhT2Di48DA9"));
-//            request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-
-//            var response = await httpClient.SendAsync(request);
-
-//            // I can Json response in this variable 
-//            var jsonString = await response.Content.ReadAsStringAsync();
-
-//            // How to populate the response object
-//            var jsonContent = JsonConvert.DeserializeObject<JiraResponse>(jsonString);
-//        }
-//    }
-//}
-//private string RestCall()
-//{
-//    var result = string.Empty;
-//    try
-//    {
-//        string url = "\"https://geek1121.atlassian.net\";
-//        var client = new RestClient(url + "/rest/api/2/search?jql=");
-//        var request = new RestRequest
-//        {
-//            Method = Method.GET,
-//            RequestFormat = DataFormat.Json
-//        };
-//        request.AddHeader("Authorization", "Basic " + api_token);
-//        var response = client.Execute(request);
-//        result = response.Content;
-//    }
-//    catch (Exception ex)
-//    {
-//        throw ex;
-//    }
-//    return result;
-//}
