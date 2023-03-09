@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc;
 using Ticketingtool.Models;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +11,14 @@ using Newtonsoft.Json.Linq;
 using RestSharp.Authenticators;
 using RestSharp;
 using Microsoft.AspNetCore.Connections.Features;
+using MimeKit;
+using MailKit.Security;
+using MailKit.Net.Smtp;
+using Microsoft.AspNetCore.Authentication.AzureAD.UI;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
 namespace Ticketingtool.Controllers
 {
@@ -39,6 +47,8 @@ namespace Ticketingtool.Controllers
 
                 // Create a select list for the description dropdown.
                 var descriptionSelectList = new SelectList(initiatives);
+                
+
 
                 // Create a view model for the index view.
                 var viewModel = new JiraTicketingToolViewModel
@@ -47,21 +57,64 @@ namespace Ticketingtool.Controllers
                     ProjectSelectList = new SelectList(new List<SelectListItem>()),
                     EpicSelectList = new SelectList(new List<SelectListItem>()), // Initialize the third dropdown with an empty list.
                     TaskSelectList = new SelectList(new List<SelectListItem>()), // Initialize the fourth dropdown with an empty list.
-                    StorySelectList = new SelectList(new List<SelectListItem>())
-
+                    StorySelectList = new SelectList(new List<SelectListItem>()),
+                    SubStatusSelectList = new List<SelectListItem>() // Initialize the fifth dropdown with an empty list.
                 };
-                //var taskSelectList = viewModel.TaskSelectList; // Temporary line to check value of TaskSelectList
-                //Console.WriteLine(taskSelectList);
 
-                // Render the index view with the view model.
+                // Get all distinct statuses from the jirastatus table.
+                var statusList = _context.jirastatus
+                    .Select(j => j.Status)
+                    .Distinct()
+                    .ToList();
+                // Create a select list for the status dropdown.
+                var statusSelectList = new SelectList(statusList);
+                viewModel.StatusSelectList = statusSelectList;
+
+                // Create a list of SelectListItem objects for the SubStatusSelectList property of the view model.
+               // var subStatusSelectList = new SelectList(statusList);
+                //viewModel.SubStatusSelectList = subStatusSelectList.Select(x => new SelectListItem { Text = x.Text, Value = x.Value }).ToList();
+
+                // Updated assignment
+
                 return View(viewModel);
             }
             catch (Exception ex)
             {
-                // If an exception occurs, render the error view with a message.
-                var errorViewModel = new ErrorViewModel { Message = "An error occurred while processing your request. Please try again later." };
-                return View("Error", errorViewModel);
+               
+               
+
+                // Return an error view.
+                return View("Error");
             }
+        }
+
+
+        //SignOut from Azure AD
+        public IActionResult signin()
+        {
+            return RedirectToAction(nameof(JiraTicketingToolController.Index), "Index");
+        }
+
+        [HttpGet]
+        public IActionResult SignOut()
+        {
+            var callbackUrl = Url.Action(nameof(SignedOut), "Account", values: null, protocol: Request.Scheme);
+            return SignOut(
+                new AuthenticationProperties { RedirectUri = callbackUrl },
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                OpenIdConnectDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet]
+        public IActionResult SignedOut()
+        {
+            //if (User.Identity.IsAuthenticated)
+            //{
+            //    // Redirect to home page if the user is authenticated.
+            //    return RedirectToAction(nameof(JiraTicketingToolController.Index), "Index");
+            //}
+
+            return RedirectToAction(nameof(JiraTicketingToolController.Index), "Index");
         }
 
         // This action method retrieves a list of projects for a given initiative description and populates the project dropdown.
@@ -198,48 +251,100 @@ namespace Ticketingtool.Controllers
             }
         }
 
+        public IActionResult GetSubStatus(string status)
+        {
+            try
+            {
+                // Query the jirastatus table to get all SubStatus values that match the selected Status value.
+                var subStatuses = _context.jirastatus
+                    .Where(j => j.Status == status)
+                    .Select(j => j.SubStatus)
+                    .ToList();
+
+                // Create a select list for the SubStatus dropdown.
+                var subStatusSelectList = new SelectList(subStatuses);
+
+                // Return the select list as a JSON object to be consumed by the AJAX request.
+                return Json(subStatusSelectList);
+
+            }
+            catch (Exception ex)
+            {
+                // If an exception occurs, return a JSON object with an error message.
+                return Json(new { error = "An error occurred while processing your request. Please try again later." });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetAssignee()
+        {
+            var employees = _context.xref_productdevelopment_team
+                .Where(e => e.active == 1)
+                .Select(e => new { e.firstName, e.lastName, e.employeeEmail })
+                .ToList();
+
+            return Json(employees);
+        }
+
+
+
+
+
+
+
+
+
         [HttpPost]
-        public IActionResult CreateJiraTicket(string projectJiraKey, string epicIssueKey, string issueType, string issueKey)
+        public IActionResult CreateJiraTicket(RequestTaskDetails requestTaskDetails)
         {
             try
             {
 
-                string username = "abcd@gmail.com";
-                string password = " ";
-                string URL = "baseurl.atlassian.net";
+                string username = "";
+                string password = ""    string URL = "geek1121.atlassian.net";
 
                 var client = new RestClient("https://" + URL + "/rest/api/2/issue/");
                 client.Authenticator = new HttpBasicAuthenticator(username, password);
                 var request = new RestRequest(Method.POST);
 
                 var jsonString = string.Empty;
-                if (!string.IsNullOrEmpty(issueType))
-                {
-                   var str = new Fields
-                    {
-                        description = "Creating of an issue using project keys and issue type names using the REST API Test123",
-                        summary = "REST ye merry gentlemen Test123",
-                        project = new Project { key = projectJiraKey },
-                        issuetype = new IssueType { name = issueType },
-                        parent = new Parent { key = epicIssueKey }
-                    };
-                      jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(str);
-                }
-                else
-                {
-                    string taskType = "Sub-Task";
-                   var  str = new Fields
-                    {
-                        description = "Creating of an issue using project keys and issue type names using the REST API Test123",
-                        summary = "REST ye merry gentlemen Test123",
-                        project = new Project { key = projectJiraKey },
-                        issuetype = new IssueType { name = taskType },
-                        parent = new Parent { key = issueKey }
-                    };
-                    jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(str);
-                }
+                //if (!string.IsNullOrEmpty(issueType))
+                //{
+                //    var str = new Fields
+                //    {
+                //        description = "Creating of an issue using project keys and issue type names using the REST API Test123",
+                //        summary = "REST ye merry gentlemen Test123",
+                //        project = new Project { key = projectJiraKey },
+                //        issuetype = new IssueType { name = issueType },
+                //        parent = new Parent { key = epicIssueKey }
+                //    };
+                //    jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(str);
+                //}
+                //else
+                //{
+                //    string taskType = "Sub-Task";
+                //    var str = new Fields
+                //    {
+                //        description = "Creating of an issue using project keys and issue type names using the REST API Test123",
+                //        summary = "REST ye merry gentlemen Test123",
+                //        project = new Project { key = projectJiraKey },
+                //        issuetype = new IssueType { name = taskType },
+                //        parent = new Parent { key = issueKey }
+                //    };
+                //    jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(str);
+                //}
 
-                
+                var str = new Fields
+                {
+                    description = requestTaskDetails.description,
+                    summary = requestTaskDetails.summary,
+                    project = new Project { key = requestTaskDetails.projectJiraKey },
+                    issuetype = new IssueType { name = requestTaskDetails.taskType },
+                    parent = new Parent { key = requestTaskDetails.epicIssueKey != "null" ? requestTaskDetails.epicIssueKey : requestTaskDetails.issueKey }
+                };
+                jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(str);
+
+
 
                 //   var dynamicObject = JsonConvert.SerializeObject<dynamic>(str)!;
                 //var json1 = new JavaScriptSerializer().Serialize(str);
@@ -253,6 +358,58 @@ namespace Ticketingtool.Controllers
                 IRestResponse response = client.Execute(request);
                 // Console.WriteLine("Issue: {0} successfully created", response.Content);
 
+                //var email = new MimeMessage();
+                //email.Sender = MailboxAddress.Parse("narayan@avitester.com");
+                //email.To.Add(MailboxAddress.Parse("muzafarmmulla@gmail.com"));
+                //email.Subject = "Test subject";
+                //var builder = new BodyBuilder();
+                //if (mailRequest.Attachments != null)
+                //{
+                //    byte[] fileBytes;
+                //    foreach (var file in mailRequest.Attachments)
+                //    {
+                //        if (file.Length > 0)
+                //        {
+                //            using (var ms = new MemoryStream())
+                //            {
+                //                file.CopyTo(ms);
+                //                fileBytes = ms.ToArray();
+                //            }
+                //            builder.Attachments.Add(file.FileName, fileBytes, ContentType.Parse(file.ContentType));
+                //        }
+                //    }
+                //}
+                //builder.HtmlBody = "Test body";
+                //email.Body = builder.ToMessageBody();
+                //using var smtp = new SmtpClient();
+                //smtp.Connect("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
+                //smtp.Authenticate("narayan@avitester.com", "HGFG#%@&$2223");
+                // smtp.SendAsync(email);
+                //smtp.Disconnect(true);
+
+                //using (MailMessage mm = new MailMessage("muzafarmmulla@gmail.com", "narayan@avitester.com"))
+                //{
+                //    mm.Subject ="Test Mail";
+                //    mm.Body = "Ticket created";
+                //    //if (model.Attachment.Length > 0)
+                //    //{
+                //    //    string fileName = Path.GetFileName(model.Attachment.FileName);
+                //    //    mm.Attachments.Add(new Attachment(model.Attachment.OpenReadStream(), fileName));
+                //    //}
+                //    mm.IsBodyHtml = false;
+                //    using (SmtpClient smtp = new SmtpClient())
+                //    {
+                //        System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
+                //        smtp.Host = "smtp.gmail.com";
+                //        smtp.EnableSsl = true;
+                //        NetworkCredential NetworkCred = new NetworkCredential("example@gmail.com", "example");
+                //        smtp.UseDefaultCredentials = false;
+                //        smtp.Credentials = NetworkCred;
+                //        smtp.Port = 587;
+                //        smtp.Send(mm);
+                //        ViewBag.Message = "Email sent.";
+                //    }
+                //}
 
                 // Return the select list as JSON.
                 return Json(response.Content);
@@ -263,52 +420,7 @@ namespace Ticketingtool.Controllers
             }
         }
 
-        //public IActionResult SendDetailTosJiraAPI()
-        //{
 
-        //    string apiUrl = @"https://URL/rest/api/3/search?jql=project=ProjectName&maxResults=10";
-
-
-        //    using (var httpClient = new HttpClient())
-        //    {
-        //        using (var request = new HttpRequestMessage(new HttpMethod("GET"), apiUrl))
-        //        {
-        //            var base64authorization =
-        //                Convert.ToBase64String(Encoding.ASCII.GetBytes("emailId:CU2NhBYhT2Di48DA9"));
-        //            request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-
-        //            var response = await httpClient.SendAsync(request);
-
-        //            // I can Json response in this variable 
-        //            var jsonString = await response.Content.ReadAsStringAsync();
-
-        //            // How to populate the response object
-        //            var jsonContent = JsonConvert.DeserializeObject<JiraResponse>(jsonString);
-        //        }
-        //    }
-        //}
-        //private string RestCall()
-        //{
-        //    var result = string.Empty;
-        //    try
-        //    {
-        //        string url = "\"https://geek1121.atlassian.net\";
-        //        var client = new RestClient(url + "/rest/api/2/search?jql=");
-        //        var request = new RestRequest
-        //        {
-        //            Method = Method.GET,
-        //            RequestFormat = DataFormat.Json
-        //        };
-        //        request.AddHeader("Authorization", "Basic " + api_token);
-        //        var response = client.Execute(request);
-        //        result = response.Content;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw ex;
-        //    }
-        //    return result;
-        //}
     }
 
 }
@@ -341,5 +453,67 @@ public class IssueType
 {
     public string name { get; set; }
 
-    public string epic { get; set; }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//public IActionResult SendDetailTosJiraAPI()
+//{
+
+//    string apiUrl = @"https://URL/rest/api/3/search?jql=project=ProjectName&maxResults=10";
+
+
+//    using (var httpClient = new HttpClient())
+//    {
+//        using (var request = new HttpRequestMessage(new HttpMethod("GET"), apiUrl))
+//        {
+//            var base64authorization =
+//                Convert.ToBase64String(Encoding.ASCII.GetBytes("emailId:CU2NhBYhT2Di48DA9"));
+//            request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+
+//            var response = await httpClient.SendAsync(request);
+
+//            // I can Json response in this variable 
+//            var jsonString = await response.Content.ReadAsStringAsync();
+
+//            // How to populate the response object
+//            var jsonContent = JsonConvert.DeserializeObject<JiraResponse>(jsonString);
+//        }
+//    }
+//}
+//private string RestCall()
+//{
+//    var result = string.Empty;
+//    try
+//    {
+//        string url = "\"https://geek1121.atlassian.net\";
+//        var client = new RestClient(url + "/rest/api/2/search?jql=");
+//        var request = new RestRequest
+//        {
+//            Method = Method.GET,
+//            RequestFormat = DataFormat.Json
+//        };
+//        request.AddHeader("Authorization", "Basic " + api_token);
+//        var response = client.Execute(request);
+//        result = response.Content;
+//    }
+//    catch (Exception ex)
+//    {
+//        throw ex;
+//    }
+//    return result;
+//}
