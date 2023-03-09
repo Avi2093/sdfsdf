@@ -75,6 +75,14 @@
         margin-bottom: 1rem;
     }
 
+    .select2-container .select2-selection--single {
+        height: 40px !important;
+    }
+
+    input[type='date']:in-range::-webkit-datetime-edit-year-field, input[type='date']:in-range::-webkit-datetime-edit-month-field, input[type='date']:in-range::-webkit-datetime-edit-day-field, input[type='date']:in-range::-webkit-datetime-edit-text {
+        color: transparent;
+    }
+
 </style>
 
 
@@ -110,7 +118,7 @@
                 <div class="col-md-12">
                     <pre style="margin: 0 !important;">Please select the Task in which you want create the Sub task!! </pre>
                     <label for="Task-dropdown">Task List<span class="required"></span></label>
-                        @Html.DropDownListFor(m => m.SelectedTask, Model.TaskSelectList, "Select a Task", new { @class = "js-select2" })
+                    @Html.DropDownListFor(m => m.SelectedTask, Model.TaskSelectList, "Select a Task", new { @class = "js-select2" })
 
                 </div>
             </div>
@@ -174,8 +182,15 @@
         </div>
         <div class="row">
             <div class="col-6">
-                <label for="Assignee">Assignee:</label>
-                <select id="Assignee" class="form-control">
+                <div class="form-group">
+                    <label for="summary">Summary<span class="required"></span>:</label>
+                    <textarea id="summary" name="summary" rows="3" cols="50" class="form-control" required></textarea>
+                </div>
+
+            </div>
+            <div class="col-6">
+                <label for="Assignee">Assignee<span class="required"></span>:</label>
+                <select id="Assignee" class="form-control" required>
                     <option value="">--Select Assignee--</option>
                 </select>
             </div>
@@ -184,20 +199,64 @@
 
 
         <div class="row">
-            <div class="col-6">
-                <div class="form-group">
-                    <label for="summary">Summary:</label>
-                    <textarea id="summary" name="summary" rows="3" cols="50" class="form-control"></textarea>
-                </div>
+            <div class="col-12">
+                <table width="100%">
+                    <tr>
+                        <td rowspan="2" style="width: 51% !important; ">
+                            <div class="col-11" style="width: 96.666667% !important; ">
+                                <div class="form-group">
+                                    <label for="description">Description<span class="required"></span>:</label>
+                                    <textarea id="description" name="description" rows="6" cols="50" class="form-control" required></textarea>
+                                </div>
+                            </div>
+                        </td>
+                        <td colspan="1">
+                            <div class="col-11">
+                                <label for="isBacklog">Is Backlog:</label>
+                                <select id="isBacklog" name="isBacklog" class="form-control">
+                                    <option value=""></option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </div>
+                        </td>
+                        <td colspan="1">
+                            <div class="col-12">
+                                <label for="ragStatus">RAG Status:</label>
+                                <select id="ragStatus" name="ragStatus" class="form-control">
+                                    <option value="" selected>-- Select RAG Status --</option>
+                                    <option value="Red">Red</option>
+                                    <option value="Amber">Amber</option>
+                                    <option value="Green">Green</option>
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="col-11">
+                                <label for="billingEffort">Billing Effort:</label>
+                                <select id="billingEffort" name="billingEffort" class="form-control">
+                                    <option value="">--Select--</option>
+                                    <option value="Billable">Billable</option>
+                                    <option value="Non Billable">Non Billable</option>
+                                    <option value="Non Billable">Non Billable</option>
+                                </select>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="col-12">
 
-            </div>
-            <div class="col-6">
-                <div class="form-group">
-                    <label for="description">Description:</label>
-                    <textarea id="description" name="description" rows="6" cols="50" class="form-control"></textarea>
-                </div>
-            </div>
+                                <label for="projectCategoryName">WorkStream:</label>
+                                <select class="form-control" id="projectCategory" name="projectCategory">
+                                    <option value="">-- Select --</option>
+                                </select>
+                            </div>
+                        </td>
 
+                    </tr>
+                </table>
+            </div>
         </div>
 
 
@@ -214,41 +273,16 @@
             </div>
             <div class="col-3">
                 <label for="prodReleaseDate">Production Release Date:</label>
-                <input type="datetime-local" id="prodReleaseDate" name="prodReleaseDate" class="form-control">
+                <input type="date" id="prodReleaseDate" name="prodReleaseDate" class="form-control">
             </div>
             <div class="col-3">
                 <label for="dueDate">Due Date:</label>
-                <input type="datetime-local" id="dueDate" name="dueDate" class="form-control">
+                <input type="date" id="dueDate" name="dueDate" class="form-control">
             </div>
 
-       <br />
-            <div class="col-4">
-                <label for="isBacklog">Is Backlog:</label>
-                <select id="isBacklog" name="isBacklog" class="form-control">
-                    <option value="">--Select--</option>
-                    <option value="Yes">Yes</option>
-                    <option value="No">No</option>
-                </select>
-            </div>
+            <br />
 
-
-            <div class="col-4">
-                <label for="ragStatus">RAG Status:</label>
-                <select id="ragStatus" name="ragStatus" class="form-control">
-                    <option value="" selected>-- Select RAG Status --</option>
-                    <option value="Red">Red</option>
-                    <option value="Amber">Amber</option>
-                    <option value="Green">Green</option>
-                </select>
-            </div>
-
-            <div class="col-4">
-                <label for="billingEffort">Billing Effort:</label>
-                <select id="billingEffort" name="billingEffort" class="form-control">
-                    <option value="">--Select--</option>
-                    <option value="Billable">Billable</option>
-                    <option value="Non Billable">Non Billable</option>
-                </select>
+            <div class="row">
             </div>
 
             <div class="col-8">
@@ -277,6 +311,41 @@
                 </div>
             </div>
         </div>
+
+
+
+        <div class="row">
+            <div class="col-4">
+                <label for="activityTypeDropdown">Activity Type:</label>
+                <select class="form-control" id="activityTypeDropdown" name="activityTypeDropdown">
+                    <option value="">-- Select --</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-4">
+                <label for="priority">Priority:</label>
+                <select name="priority" id="priority">
+                    <option value="" selected></option>
+                    <option value="bug">Bug</option>
+                    <option value="security">Security</option>
+                    <option value="legal">Legal</option>
+                    <option value="business">Business</option>
+                    <option value="highest">Highest</option>
+                    <option value="architect">Architect</option>
+                    <option value="high">High</option>
+                    <option value="cleanup">Cleanup</option>
+                    <option value="medium">Medium</option>
+                    <option value="wishlist">Wishlist</option>
+                    <option value="low">Low</option>
+                    <option value="lowest">Lowest</option>
+                </select>
+            </div>
+        </div>
+
+
+
 
 
         <div class="row justify-content-end">
@@ -331,12 +400,13 @@
                 //Assignee details
                 GetAssigneeDetails();
 
-
+                GetJiraWorkstream();
+                GetActivity();
             });
 
             // Handle description dropdown change event
             $('#SelectedInitiative').on('change', function () {
-                var description = $(this).val();
+                var description = $("#SelectedInitiative").find('option:selected').text();
                 if (description) {
                     $.ajax({
                         url: '@Url.Action("GetProjects", "JiraTicketingTool")',
@@ -364,7 +434,7 @@
             });
 
             $('#SelectedProject').on('change', function () {
-                var InitiativeName = $('#SelectedInitiative').val();
+                var InitiativeName = $("#SelectedInitiative").find('option:selected').text();
                 var ProjectName = $(this).val();
 
 
@@ -530,9 +600,52 @@
         }
 
 
+        function GetJiraWorkstream() {
+
+            // Make an AJAX call to the GetJiraWorkstream method to get the project categories.
+            $.ajax({
+                url: '@Url.Action("GetJiraWorkstream", "JiraTicketingTool")',
+                type: 'GET',
+                success: function (result) {
+                    // Populate the project category dropdown with the results.
+                    var options = "";
+
+                    for (var i = 0; i < result.length; i++) {
+                        options += "<option value='" + result[i].text + "'>" + result[i].text + "</option>";
+                    }
+                    $('#projectCategory').append(options);
+                },
+                error: function (xhr, status, error) {
+                    // Display an error message if the AJAX call fails.
+                    console.log(xhr.responseText);
+                }
+            });
+        }
+
+        function GetActivity() {
+
+            // Make an AJAX call to the GetActivity method to get the activity types.
+            $.ajax({
+                url: '@Url.Action("GetActivity", "JiraTicketingTool")',
+                type: 'GET',
+                success: function (result) {
+                    // Populate the dropdown with the activity types.
+                    var options = "";
+                    for (var i = 0; i < result.length; i++) {
+                        options += "<option value='" + result[i] + "'>" + result[i] + "</option>";
+                    }
+                    $('#activityTypeDropdown').append(options);
+                },
+                error: function (xhr, status, error) {
+                    // Display an error message if the AJAX call fails.
+                    console.log(xhr.responseText);
+                }
+            });
+        }
+
+
         function submitDetails() {
             console.log('1');
-            // $("#SubmitButton").on("click", submitDetails);
             var initiatives = $("#SelectedInitiative").find('option:selected').val();
             var projectName = $("#SelectedProject").find('option:selected');
             var projectJiraKey = projectName.attr('jiraKey');
@@ -543,18 +656,12 @@
 
             var taskelement = $("#SelectedTask").find('option:selected');
             var taskOrStoryIssueKey = taskelement.attr('issueKey');
-            // var storyIssueKey="";
+
+
             if (taskelement.val() == 'select') {
                 var storylement = $("#SelectedStory").find('option:selected');
                 taskOrStoryIssueKey = storylement.attr('issueKey');
             }
-            //var issueType = "";
-            //if (document.querySelector('input[name="taskStory"]:checked').value == 'Yes') {
-            //    issueType = $("#selIssueType").find('option:selected').val();
-            //}
-            //else {
-            //    taskOrStoryIssueKey = taskOrStoryIssueKey;
-            //}
 
 
             //Option task, story, subtask, bug
@@ -565,7 +672,24 @@
             // Get the selected FullName and employeeEmail
             var assigneeEmail = $("#Assignee").find('option:selected').val();
 
+            //Custome fields
+            var isBacklog = $("#isBacklog").find('option:selected').val();
+            var ragStatus = $("#ragStatus").find('option:selected').val();
+            var billingEffort = $("#billingEffort").find('option:selected').val();
+            var workstream = $("#projectCategory").find('option:selected').val();
+            
 
+            //Dates
+            var actualStartDate = $("#actualStartDate").val();
+            var actualEndDate = $("#actualEndDate").val();
+            var prodReleaseDate = $("#prodReleaseDate").val();
+            var dueDate = $("#dueDate").val();
+
+
+            var status = $("#SelectedStatus").find('option:selected').val();
+            var subStatus = $("#SelectedSubStatus").find('option:selected').val();
+            var activityType = $("#activityTypeDropdown").find('option:selected').val();
+            var priority = $("#priority").find('option:selected').val();
 
             console.log(initiatives, projectName, projectJiraKey, epicIssueKey, taskOrStoryIssueKey);
             formData.append('projectJiraKey', projectJiraKey);
@@ -581,6 +705,20 @@
             formData.append('summary', summary);
             formData.append('description', description);
             formData.append('employeeEmail', assigneeEmail);
+            formData.append('isBacklog', isBacklog);
+            formData.append('ragStatus', ragStatus);
+            formData.append('billingEffort', billingEffort);
+            formData.append('workstream', workstream);
+
+            formData.append('actualStartDate', actualStartDate);
+            formData.append('actualEndDate', actualEndDate);
+            formData.append('prodReleaseDate', prodReleaseDate);
+            formData.append('dueDate', dueDate);
+
+            formData.append('status', status);
+            formData.append('subStatus', subStatus);
+            formData.append('activityType', activityType);
+            formData.append('priority', priority);
 
 
             //  New code to send a post request with Basic Authentication
