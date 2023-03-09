@@ -1,4 +1,4 @@
-﻿namespace Ticketingtool.Models
+namespace Ticketingtool.Models
 {
     public class JiraTaskDetail
     {
