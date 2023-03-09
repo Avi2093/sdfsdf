@@ -331,19 +331,19 @@ namespace Ticketingtool.Controllers
         {
             try
             {
-
                 string username = " ";
                 string password = " ";
                 string URL = "geek1121.atlassian.net";
 
                 var client = new RestClient("https://" + URL + "/rest/api/2/issue/");
                 client.Authenticator = new HttpBasicAuthenticator(username, password);
+
                 var request = new RestRequest(Method.POST);
+                request.AddHeader("Accept", "application/json");
+                request.AddHeader("Cache-Control", "no-cache");
+                request.AddHeader("Content-Type", "application/json");
 
-                var jsonString = string.Empty;
-
-
-                var str = new Fields
+                var fields = new Fields
                 {
                     description = requestTaskDetails.description,
                     summary = requestTaskDetails.summary,
@@ -352,57 +352,33 @@ namespace Ticketingtool.Controllers
                     parent = new Parent { key = requestTaskDetails.epicIssueKey != "null" ? requestTaskDetails.epicIssueKey : requestTaskDetails.issueKey },
                     assignee = new Assignee { name = requestTaskDetails.employeeEmail },
                     customfield_10925 = requestTaskDetails.isBacklog,
-                    customfield_10658 = new customfield_10658 { value= requestTaskDetails.ragStatus },
-                    customfield_10843 = new customfield_10843 { value= requestTaskDetails.billingEffort },
-                    customfield_11018 = new customfield_11018 { value= requestTaskDetails.workstream },
-                    
-                    customfield_10841= requestTaskDetails.actualStartDate,
+                    customfield_10658 = new customfield_10658 { value = requestTaskDetails.ragStatus },
+                    customfield_10843 = new customfield_10843 { value = requestTaskDetails.billingEffort },
+                    customfield_11018 = new customfield_11018 { value = requestTaskDetails.workstream },
+                    customfield_10841 = requestTaskDetails.actualStartDate,
                     customfield_10842 = requestTaskDetails.actualEndDate,
                     customfield_10828 = new customfield_10828 { value = requestTaskDetails.status },
                     customfield_10829 = new customfield_10829 { value = requestTaskDetails.subStatus },
                     customfield_10088 = new customfield_10088 { value = requestTaskDetails.activityType },
                     priority = new priority { name = requestTaskDetails.priority },
-                    customfield_10691 = new customfield_10691 { value = requestTaskDetails.origonCountry },
+                    customfield_10691 = new customfield_10691 { value = requestTaskDetails.origonCountry }
                 };
-                jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(str);
 
-                JObject json = JObject.Parse(jsonString);
-                //request.AddJsonBody(json);
-                request.AddHeader("Accept", "application/json");
-                request.AddHeader("Cache-Control", "no-cache");
-                request.AddHeader("Content-Type", "application/json");
-                request.AddParameter("application/json", json, ParameterType.RequestBody);
-                IRestResponse response = client.Execute(request);
-               
-               
-                // Return the select list as JSON.
+                var fieldsObject = new { fields };
+                var jsonString = JsonConvert.SerializeObject(fieldsObject);
+                request.AddParameter("application/json", jsonString, ParameterType.RequestBody);
+
+                var response = client.Execute(request);
+
                 return Json(response);
-
-
-                if (response.IsSuccessful == true)
-                {
-                    //mail
-                }
-                if (response.ErrorMessage != null)
-                {
-                    //error
-                }
-
-
-
-
-
-
-
-
-
-
             }
             catch (Exception ex)
             {
                 return BadRequest("An error occurred while processing your request. Please try again later.");
             }
         }
+
+
 
 
     }
