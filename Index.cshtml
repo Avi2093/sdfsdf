@@ -78,11 +78,9 @@
 </style>
 
 
-<div class="form-heading">Form</div>
+<div class="form-heading">Form  <a href="@Url.Action("SignOut", "JiraTicketingTool")" class="float-end btn btn-danger">logout</a></div>
 <div style="overflow-x: auto;">
     <form onsubmit="return submitDetails()">
-
-
         <div>
             <label for="Initiative-dropdown">Initiatives<span class="required"></span></label>
             @Html.DropDownListFor(m => m.SelectedInitiative, Model.InitiativeSelectList, "Select an Initiative", new { @class = "js-select2" })
@@ -97,29 +95,39 @@
             @Html.DropDownListFor(m => m.SelectedEpic, Model.EpicSelectList, "Select an epic", new { @class = "js-select2" })
 
         </div>
-        <div>
+        <br />
+        <div id="divOptions" style="display:none">
+
+            <label>Select Below Option to Create</label>
+            <input type="radio" name="taskStoryOpt" value="Task" /> Task
+            <input type="radio" name="taskStoryOpt" value="Story" /> Story
+            <input type="radio" name="taskStoryOpt" value="Sub-Task" /> Sub Task
+            <input type="radio" name="taskStoryOpt" value="Bug" /> Bug
         </div>
 
-        <div class="StoryOptions" id="IdNoStoryOption" style="display:none">
+        <div class="StoryOptions" id="IdSubTaskOption" style="display:none">
             <div class="form-group ">
                 <div class="col-md-12">
+                    <pre style="margin: 0 !important;">Please select the Task in which you want create the Sub task!! </pre>
                     <label for="Task-dropdown">Task List<span class="required"></span></label>
-                    @Html.DropDownListFor(m => m.SelectedTask, Model.TaskSelectList, "Select a Task", new { @class = "js-select2" })
+                        @Html.DropDownListFor(m => m.SelectedTask, Model.TaskSelectList, "Select a Task", new { @class = "js-select2" })
 
                 </div>
+            </div>
+        </div>
+
+        <div class="StoryOptions" id="IdBugStoryOption" style="display:none">
+            <div class="form-group ">
                 <div>
+                    <p style="margin: 0 !important;">Please select the story in which you want create the bug!! </p>
                     <label for="Story-dropdown">Story List<span class="required"></span></label>
                     @Html.DropDownListFor(m => m.SelectedStory, Model.StorySelectList, "Select a Story", new { @class = "js-select2" })
-
-
                 </div>
-
             </div>
-
         </div>
 
         <div id="divYesShowStory" style="display:none">
-            <select id="selIssueType">
+            <select id="selIssueType class=" form-control"">
                 <option>Select Issue Type</option>
                 <option value="Task">Task</option>
                 <option value="Story">Story</option>
@@ -162,20 +170,31 @@
 
 
 
+
         </div>
+        <div class="row">
+            <div class="col-6">
+                <label for="Assignee">Assignee:</label>
+                <select id="Assignee" class="form-control">
+                    <option value="">--Select Assignee--</option>
+                </select>
+            </div>
+
+        </div>
+
 
         <div class="row">
             <div class="col-6">
                 <div class="form-group">
                     <label for="summary">Summary:</label>
-                    <textarea id="summary" name="summary" rows="3" cols="50"></textarea>
+                    <textarea id="summary" name="summary" rows="3" cols="50" class="form-control"></textarea>
                 </div>
 
             </div>
             <div class="col-6">
                 <div class="form-group">
                     <label for="description">Description:</label>
-                    <textarea id="description" name="description" rows="6" cols="50"></textarea>
+                    <textarea id="description" name="description" rows="6" cols="50" class="form-control"></textarea>
                 </div>
             </div>
 
@@ -184,56 +203,78 @@
 
         @*For Actual start Date and End Date*@
         <div class="form-group row">
-            <div class="col-12">
-                <h3 style="width:100%">Other Fields</h3>
-                <hr style="border: 2px solid black;">
-            </div>
+
             <div class="col-3">
                 <label for="actualStartDate">Actual start date:</label>
-                <input type="date" id="actualStartDate" name="actualStartDate">
+                <input type="date" id="actualStartDate" name="actualStartDate" class=" form-control">
             </div>
             <div class="col-3">
                 <label for="actualEndDate">Actual end date:</label>
-                <input type="date" id="actualEndDate" name="actualEndDate">
+                <input type="date" id="actualEndDate" name="actualEndDate" class="form-control">
             </div>
             <div class="col-3">
                 <label for="prodReleaseDate">Production Release Date:</label>
-                <input type="datetime-local" id="prodReleaseDate" name="prodReleaseDate">
+                <input type="datetime-local" id="prodReleaseDate" name="prodReleaseDate" class="form-control">
             </div>
             <div class="col-3">
                 <label for="dueDate">Due Date:</label>
-                <input type="datetime-local" id="dueDate" name="dueDate">
+                <input type="datetime-local" id="dueDate" name="dueDate" class="form-control">
             </div>
-            <div class="col-3">
+
+       <br />
+            <div class="col-4">
                 <label for="isBacklog">Is Backlog:</label>
-                <select id="isBacklog" name="isBacklog">
-                    <option value="Yes" selected>Yes</option>
+                <select id="isBacklog" name="isBacklog" class="form-control">
+                    <option value="">--Select--</option>
+                    <option value="Yes">Yes</option>
                     <option value="No">No</option>
                 </select>
             </div>
-            <div class="col-3">
+
+
+            <div class="col-4">
                 <label for="ragStatus">RAG Status:</label>
-                <select id="ragStatus" name="ragStatus">
+                <select id="ragStatus" name="ragStatus" class="form-control">
+                    <option value="" selected>-- Select RAG Status --</option>
                     <option value="Red">Red</option>
                     <option value="Amber">Amber</option>
                     <option value="Green">Green</option>
                 </select>
             </div>
-            <div class="col-3">
+
+            <div class="col-4">
                 <label for="billingEffort">Billing Effort:</label>
-                <select id="billingEffort" name="billingEffort">
+                <select id="billingEffort" name="billingEffort" class="form-control">
+                    <option value="">--Select--</option>
                     <option value="Billable">Billable</option>
                     <option value="Non Billable">Non Billable</option>
                 </select>
             </div>
-            <div class="col-12">
+
+            <div class="col-8">
                 <label for="requesterDetails">Requester Details:</label>
-                <input type="text" id="requesterDetails" name="requesterDetails" style="width: 50%">
+                <input type="text" id="requesterDetails" name="requesterDetails" style="width: 100%" class="form-control">
 
             </div>
             <div class="col-4">
                 <label for="sdTicketNo">SD Ticket No:</label>
-                <input type="text" id="sdTicketNo" name="sdTicketNo">
+                <input type="text" id="sdTicketNo" name="sdTicketNo" style="width: 100%" class="form-control">
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-6">
+                <div class="form-group">
+                    <label for="Status">Status</label>
+                    @Html.DropDownListFor(m => m.SelectedStatus, Model.StatusSelectList, "Select Status",new { @class = "js-select2 form-control" })
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-group">
+                    <label for="Substatus">Substatus</label>
+                    @Html.DropDownListFor(m => m.SelectedSubStatus, Model.SubStatusSelectList, "Select SubStatus",new { @class = "js-select2 form-control" })
+                </div>
             </div>
         </div>
 
@@ -247,10 +288,6 @@
             </div>
 
         </div>
-
-
-
-
     </form>
 </div>
 
@@ -280,7 +317,6 @@
             });
             $(document).ready(function () {
                 var storyDiv = $('.StoryOptions');
-                $('#SelectedStory').removeAttr("disabled", 'disabled');
                 $('.iSTaskOrStoryDiv input[type="radio"]').change(function () {
                     if ($(this).val() == "Yes") {
                         $("#divYesShowStory").css({ "display": "block" });
@@ -291,6 +327,9 @@
                     }
                     console.log($(this).val())
                 });
+
+                //Assignee details
+                GetAssigneeDetails();
 
 
             });
@@ -358,7 +397,9 @@
                 var EpicName = $(this).val();
                 var ProjectName = $('#SelectedProject').val();
                 // alert('fi');
-                $('#IdiSTaskOrStoryDiv').modal('show');
+                //$('#IdiSTaskOrStoryDiv').modal('show');
+                $("#divOptions").css({ "display": "block" });
+
                 if (ProjectName != "" && EpicName != "") {
                     $.ajax({
                         url: '@Url.Action("GetTasks", "JiraTicketingTool")',
@@ -374,7 +415,6 @@
                             });
                             // TaskDropdown.trigger('change');
                             $('#SelectedStory').removeAttr("disabled", 'disabled');
-
                         }
                     });
                 }
@@ -386,13 +426,13 @@
                 }
             });
 
-            $("#SelectedTask").on('change', function () {
-                if ($(this).val() == "select") {
-                    $('#SelectedStory').removeAttr("disabled", 'disabled');
-                } else {
-                    $('#SelectedStory').attr("disabled", 'disabled');
-                }
-            });
+            //$("#SelectedTask").on('change', function () {
+            //    if ($(this).val() == "select") {
+            //        $('#SelectedStory').removeAttr("disabled", 'disabled');
+            //    } else {
+            //        $('#SelectedStory').attr("disabled", 'disabled');
+            //    }
+            //});
 
             $('#SelectedEpic').on('change', function () {
                 var EpicName = $(this).val();
@@ -424,9 +464,71 @@
                 }
             });
 
+            $('input[type=radio][name=taskStoryOpt]').change(function () {
+                if (this.value == 'Sub-Task') {
+                    $("#IdSubTaskOption").css({ "display": "block" });
+                    $("#IdBugStoryOption").css({ "display": "none" });
+                }
+                else if (this.value == 'Bug') {
+                    $("#IdBugStoryOption").css({ "display": "block" });
+                    $("#IdSubTaskOption").css({ "display": "none" });
+                } else {
+                    $("#IdSubTaskOption").css({ "display": "none" });
+                    $("#IdBugStoryOption").css({ "display": "none" });
+                }
+            });
 
+            //For Status/SubStatus Dropdown
+            $('#SelectedStatus').on('change', function () {
+                // Get the dropdown elements
+                var statusDropdown = $('#SelectedStatus');
+                var substatusDropdown = $('#SelectedSubStatus');
+
+                // Initialize the substatus dropdown with an empty list
+                substatusDropdown.empty();
+                substatusDropdown.append($('<option/>').val('').text('Select SubStatus'));
+
+                // On change of the status dropdown, populate the substatus dropdown with values that match the selected status
+                // statusDropdown.change(function () {
+                var selectedStatus = $(this).val();
+                substatusDropdown.empty();
+                substatusDropdown.append($('<option/>').val('').text('Select SubStatus'));
+                $.ajax({
+                    type: "GET",
+                    url: "/JiraTicketingTool/GetSubStatus",
+                    data: { status: selectedStatus },
+                    success: function (data) {
+                        $.each(data, function (i, substatus) {
+                            substatusDropdown.append($('<option/>').val(substatus.text).text(substatus.text));
+                        });
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+                        alert('Error occurred while loading substatus dropdown.');
+                    }
+                });
+                // });
+            });
 
         });
+
+
+        function GetAssigneeDetails() {
+            $.ajax({
+                url: "/JiraTicketingTool/GetAssignee",
+                type: "GET",
+                dataType: "json",
+                success: function (data) {
+                    var options = "";
+                    for (var i = 0; i < data.length; i++) {
+                        options += "<option value='" + data[i].employeeEmail + "'>" + data[i].firstName + " " + data[i].lastName + "</option>";
+                    }
+                    $("#Assignee").append(options);
+                    // Initialize Select2 plugin
+                    $('#Assignee').select2();
+                }
+            });
+        }
+
 
         function submitDetails() {
             console.log('1');
@@ -446,29 +548,54 @@
                 var storylement = $("#SelectedStory").find('option:selected');
                 taskOrStoryIssueKey = storylement.attr('issueKey');
             }
-            //formData.append('initiatives', initiatives);
-            //formData.append('projectName', projectName);
-            //formData.append('projectJiraKey', projectJiraKey);
-            //formData.append('epicIssueKey', epicIssueKey);
-            //formData.append('taskOrStoryIssueKey', taskOrStoryIssueKey);
-            var issueType = "";
-            if (document.querySelector('input[name="taskStory"]:checked').value == 'Yes') {
-                issueType = $("#selIssueType").find('option:selected').val();
-            }
-            else {
-                taskOrStoryIssueKey = taskOrStoryIssueKey;
-            }
+            //var issueType = "";
+            //if (document.querySelector('input[name="taskStory"]:checked').value == 'Yes') {
+            //    issueType = $("#selIssueType").find('option:selected').val();
+            //}
+            //else {
+            //    taskOrStoryIssueKey = taskOrStoryIssueKey;
+            //}
+
+
+            //Option task, story, subtask, bug
+            var taskType = document.querySelector('input[name="taskStoryOpt"]:checked').value;
+            var summary = $('#summary').val();
+            var description = $('#description').val();
+
+            // Get the selected FullName and employeeEmail
+            var assigneeEmail = $("#Assignee").find('option:selected').val();
+
+
 
             console.log(initiatives, projectName, projectJiraKey, epicIssueKey, taskOrStoryIssueKey);
+            formData.append('projectJiraKey', projectJiraKey);
+            if (taskType == "Task" || taskType == "Story") {
+                formData.append('issueKey', null);
+                formData.append('epicIssueKey', epicIssueKey);
+            } else {
+                formData.append('epicIssueKey', null);
+                formData.append('issueKey', taskOrStoryIssueKey);
+            }
+            formData.append('taskType', taskType);
+
+            formData.append('summary', summary);
+            formData.append('description', description);
+            formData.append('employeeEmail', assigneeEmail);
+
 
             //  New code to send a post request with Basic Authentication
             $.ajax({
                 url: '@Url.Action("CreateJiraTicket", "JiraTicketingTool")',
-                data: { projectJiraKey: projectJiraKey, epicIssueKey: epicIssueKey, issueType: issueType, issueKey: taskOrStoryIssueKey },
-                type: 'post',
-                dataType: 'json',
+                // data: { projectJiraKey: projectJiraKey, epicIssueKey: epicIssueKey, taskType: taskType, issueKey: taskOrStoryIssueKey },
+                //data: JSON.stringify({ requestTaskDetails: requestData }),
+                type: 'POST',
+                processData: false,
+                contentType: false,
+                //async: true,
+                cache: false,
+                data: formData,
                 success: function (data) {
-                    console.log(data)
+                    alert(data);
                 }
             });
             return false;
