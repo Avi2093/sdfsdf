@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 
 namespace Ticketingtool.Models
@@ -13,6 +13,11 @@ namespace Ticketingtool.Models
         // This DbSet property maps to the 'JiraTaskDetails' table in the database
         // The JiraTaskDetail entity class is used to represent the rows in this table
         public DbSet<JiraTaskDetail> JiraTaskDetails { get; set; }
+        public DbSet<jirastatus> jirastatus { get; set; }
+
+        public DbSet<xref_productdevelopment_team> xref_productdevelopment_team { get; set; }
+
+     
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,6 +28,8 @@ namespace Ticketingtool.Models
 
           
             modelBuilder.Entity<JiraTaskDetail>().HasNoKey();
+            modelBuilder.Entity<jirastatus>().HasNoKey();
+            modelBuilder.Entity<xref_productdevelopment_team>().HasNoKey();
         }
     }
 }
