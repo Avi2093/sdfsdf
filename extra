@@ -1,0 +1,75 @@
+ public IActionResult GetCountry()
+        {
+            try
+            {
+                // Get all distinct countries from the jira_location table.
+                var countryList = _context.jira_location
+                    .Select(j => j.country)
+                    .Distinct()
+                    .ToList();
+
+                return Json(countryList);
+            }
+            catch (Exception ex)
+            {
+                // Return an error message.
+                return Json(new { error = ex.Message });
+            }
+        }
+        
+        
+        
+        namespace Ticketingtool.Models
+{
+    public class jira_location
+    {
+        public string country { get; set; }
+    }
+}
+
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+
+namespace Ticketingtool.Models
+{
+    public class ApplicationDbContext : DbContext
+    {
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options)
+        {
+        }
+
+        // This DbSet property maps to the 'JiraTaskDetails' table in the database
+        // The JiraTaskDetail entity class is used to represent the rows in this table
+        public DbSet<JiraTaskDetail> JiraTaskDetails { get; set; }
+        public DbSet<jira_workstreams> jira_workstreams { get; set; }
+
+        public DbSet<xref_productdevelopment_team> xref_productdevelopment_team { get; set; }
+        public DbSet<jirastatus> jirastatus { get; set; }
+        public DbSet<jira_location> jira_location { get; set; }
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // This line configures the 'JiraTaskDetails' entity to not have a primary key
+            // This is necessary because the 'JiraTaskDetails' table does not have a primary key column
+
+          
+            modelBuilder.Entity<JiraTaskDetail>().HasNoKey();
+            modelBuilder.Entity<jirastatus>().HasNoKey();
+            modelBuilder.Entity<xref_productdevelopment_team>().HasNoKey();
+            modelBuilder.Entity<jira_workstreams>().HasNoKey();
+            modelBuilder.Entity< jira_location > ().HasNoKey();
+
+        }
+    }
+}
+
+
+  "JiraSettings": {
+    "Username": "your_username_here",
+    "Password": "your_password_here",
+    "URL": "geek1121.atlassian.net"
+  },
