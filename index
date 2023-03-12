@@ -144,14 +144,14 @@
             <label>Select Below Option to Create</label>
             <input type="radio" name="taskStoryOpt" value="Task" /> Task
             <input type="radio" name="taskStoryOpt" value="Story" /> Story
-            <input type="radio" name="taskStoryOpt" value="Sub-Task" /> Sub Task
-            <input type="radio" name="taskStoryOpt" value="Bug" /> Bug
+            <input type="radio" name="taskStoryOpt"   value="Sub-Task" /> Sub Task
+            <input type="radio" name="taskStoryOpt"  value="Bug" /> Bug
         </div>
 
         <div class="StoryOptions" id="IdSubTaskOption" style="display:none">
             <div class="form-group ">
                 <div class="col-md-12">
-                    <pre style="margin: 0 !important;">Please select the Task in which you want create the Sub task!! </pre>
+                    <pre style="margin: 0 !important;">Please select the Task in which you want create the <span id="textHeadingOpt"></span>!! </pre>
                     <label for="Task-dropdown">Task List<span class="required"></span></label>
                     @Html.DropDownListFor(m => m.SelectedTask, Model.TaskSelectList, "Select a Task", new { @class = "js-select2" })
 
@@ -162,7 +162,7 @@
         <div class="StoryOptions" id="IdBugStoryOption" style="display:none">
             <div class="form-group ">
                 <div>
-                    <pre style="margin: 0 !important;">Please select the story in which you want create the bug!! </pre>
+                    <pre style="margin: 0 !important;">Please select the story in which you want create the <span id="textHeadingOpt2"></span>!! </pre>
                     <label for="Story-dropdown">Story List<span class="required"></span></label>
                     @Html.DropDownListFor(m => m.SelectedStory, Model.StorySelectList, "Select a Story", new { @class = "js-select2" })
                 </div>
@@ -181,7 +181,7 @@
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Story or Task </h5>
+                        <h5 class="modal-title">  <label for="Task-dropdown">Where do you want to create a <span id="textHeading"></span> ? <span class="required"></span></label> </h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeModal();">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -189,15 +189,13 @@
                     <div class="modal-body">
                         <div class="iSTaskOrStoryDiv">
                             <div class="form-group">
-                                <label for="Task-dropdown">Do you want to create a Task/Story<span class="required"></span></label>
+
                                 <label>
-                                    <input type="radio" name="taskStory" value="Yes" />
-                                    @* @Html.RadioButtonFor(Model=>Model.iSTaskOrStory ,true)*@ Yes
-                                </label>
-                                <label>
+                                    <input type="radio" name="taskStoryList" value="task" />Task
+                                    @* @Html.RadioButtonFor(Model=>Model.iSTaskOrStory ,true)*@
+                                    &nbsp;
                                     @*@Html.RadioButtonFor(Model=>Model.iSTaskOrStory ,false)*@
-                                    <input type="radio" name="taskStory" value="No" />
-                                    No
+                                    <input type="radio" name="taskStoryList" value="story" />Story
                                 </label>
                             </div>
 
@@ -274,8 +272,7 @@
                                 <select id="billingEffort" name="billingEffort" class="form-control">
                                     <option value=""> Select</option>
                                     <option value="Billable">Billable to Ops</option>
-                                    <option value="Non Billable">Billable to the client</option>
-                                    <option value="Non Billable">Allocated to Ops</option>
+                                    <option value="Non-Billable ">Billable to the client</option>
                                 </select>
                             </div>
                         </td>
@@ -350,28 +347,28 @@
 
 
         <div class="row">
-            <div class="col-md-4">
+           @* <div class="col-md-4">
                 <label for="activityTypeDropdown">Activity Type:</label>
                 <select class="form-control" id="activityTypeDropdown" name="activityTypeDropdown">
                     <option value="">  Select ActivityType</option>
                 </select>
-            </div>
+            </div>*@
             <div class="col-md-4">
                 <label for="priority">Priority:</label>
                 <select class="form-control" id="priority" name="priority">
                     <option value="" selected></option>
-                    <option value="bug">Bug</option>
-                    <option value="security">Security</option>
-                    <option value="legal">Legal</option>
-                    <option value="business">Business</option>
-                    <option value="highest">Highest</option>
-                    <option value="architect">Architect</option>
-                    <option value="high">High</option>
-                    <option value="cleanup">Cleanup</option>
-                    <option value="medium">Medium</option>
-                    <option value="wishlist">Wishlist</option>
-                    <option value="low">Low</option>
-                    <option value="lowest">Lowest</option>
+                    <option value="Bug">Bug</option>
+                    <option value="Security">Security</option>
+                    <option value="Legal">Legal</option>
+                    <option value="Business">Business</option>
+                    <option value="Highest">Highest</option>
+                    <option value="Architect">Architect</option>
+                    <option value="High">High</option>
+                    <option value="Cleanup">Cleanup</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Wishlist">Wishlist</option>
+                    <option value="Low">Low</option>
+                    <option value="Lowest">Lowest</option>
                 </select>
             </div>
             <div class="col-md-4">
@@ -382,8 +379,8 @@
             </div>
         </div>
 
-       @* <button onclick="GetCountry()">Load Countries</button>*@
-
+        @* <button onclick="GetCountry()">Load Countries</button>*@
+        
 
 
 
@@ -428,12 +425,12 @@
             $(document).ready(function () {
                 var storyDiv = $('.StoryOptions');
                 $('.iSTaskOrStoryDiv input[type="radio"]').change(function () {
-                    if ($(this).val() == "Yes") {
-                        $("#divYesShowStory").css({ "display": "block" });
-                        $("#IdNoStoryOption").css({ "display": "none" });
+                    if ($(this).val() == "task") {
+                        $("#IdSubTaskOption").css({ "display": "block" });
+                        $("#IdBugStoryOption").css({ "display": "none" });
                     } else {
-                        $("#IdNoStoryOption").css({ "display": "block" });
-                        $("#divYesShowStory").css({ "display": "none" });
+                        $("#IdSubTaskOption").css({ "display": "none" });
+                        $("#IdBugStoryOption").css({ "display": "block" });
                     }
                     console.log($(this).val())
                 });
@@ -442,7 +439,7 @@
                 GetAssigneeDetails();
 
                 GetJiraWorkstream();
-                GetActivity();
+                //GetActivity();
                 GetCountry();
             });
 
@@ -578,12 +575,16 @@
 
             $('input[type=radio][name=taskStoryOpt]').change(function () {
                 if (this.value == 'Sub-Task') {
-                    $("#IdSubTaskOption").css({ "display": "block" });
+                    $('#IdiSTaskOrStoryDiv').modal('show');
+                    $("#textHeading,#textHeadingOpt,#textHeadingOpt2").text("Sub Task");
+                    $("#IdSubTaskOption").css({ "display": "none" });
                     $("#IdBugStoryOption").css({ "display": "none" });
                 }
                 else if (this.value == 'Bug') {
-                    $("#IdBugStoryOption").css({ "display": "block" });
+                    $('#IdiSTaskOrStoryDiv').modal('show');
+                    $("#textHeading,#textHeadingOpt,#textHeadingOpt2").text("Bug");
                     $("#IdSubTaskOption").css({ "display": "none" });
+                    $("#IdBugStoryOption").css({ "display": "none" });
                 } else {
                     $("#IdSubTaskOption").css({ "display": "none" });
                     $("#IdBugStoryOption").css({ "display": "none" });
@@ -641,7 +642,6 @@
             });
         }
 
-
         function GetJiraWorkstream() {
 
             // Make an AJAX call to the GetJiraWorkstream method to get the project categories.
@@ -664,26 +664,26 @@
             });
         }
 
-        function GetActivity() {
+        //function GetActivity() {
 
-            // Make an AJAX call to the GetActivity method to get the activity types.
-            $.ajax({
-                url: '@Url.Action("GetActivity", "JiraTicketingTool")',
-                type: 'GET',
-                success: function (result) {
-                    // Populate the dropdown with the activity types.
-                    var options = "";
-                    for (var i = 0; i < result.length; i++) {
-                        options += "<option value='" + result[i] + "'>" + result[i] + "</option>";
-                    }
-                    $('#activityTypeDropdown').append(options);
-                },
-                error: function (xhr, status, error) {
-                    // Display an error message if the AJAX call fails.
-                    console.log(xhr.responseText);
-                }
-            });
-        }
+        //    // Make an AJAX call to the GetActivity method to get the activity types.
+        //    $.ajax({
+        //        url: '@Url.Action("GetActivity", "JiraTicketingTool")',
+        //        type: 'GET',
+        //        success: function (result) {
+        //            // Populate the dropdown with the activity types.
+        //            var options = "";
+        //            for (var i = 0; i < result.length; i++) {
+        //                options += "<option value='" + result[i] + "'>" + result[i] + "</option>";
+        //            }
+        //            $('#activityTypeDropdown').append(options);
+        //        },
+        //        error: function (xhr, status, error) {
+        //            // Display an error message if the AJAX call fails.
+        //            console.log(xhr.responseText);
+        //        }
+        //    });
+        //}
 
         function GetCountry() {
             // Make an AJAX call to the GetCountry method to get the country list.
@@ -740,7 +740,7 @@
             var ragStatus = $("#ragStatus").find('option:selected').val();
             var billingEffort = $("#billingEffort").find('option:selected').val();
             var workstream = $("#projectCategory").find('option:selected').val();
-            
+
 
             //Dates
             var actualStartDate = $("#actualStartDate").val();
@@ -751,8 +751,10 @@
 
             var status = $("#SelectedStatus").find('option:selected').val();
             var subStatus = $("#SelectedSubStatus").find('option:selected').val();
-            var activityType = $("#activityTypeDropdown").find('option:selected').val();
+           // var activityType = $("#activityTypeDropdown").find('option:selected').val();
             var priority = $("#priority").find('option:selected').val();
+            //countryDropdown
+            var countryDropdown = $("#countryDropdown").find('option:selected').val();
 
             console.log(initiatives, projectName, projectJiraKey, epicIssueKey, taskOrStoryIssueKey);
             formData.append('projectJiraKey', projectJiraKey);
@@ -780,8 +782,9 @@
 
             formData.append('status', status);
             formData.append('subStatus', subStatus);
-            formData.append('activityType', activityType);
+           // formData.append('activityType', activityType);
             formData.append('priority', priority);
+            formData.append('countryDropdown', countryDropdown);
 
 
             //  New code to send a post request with Basic Authentication
@@ -797,11 +800,13 @@
                 data: formData,
                 success: function (data) {
                     alert(data);
+                },
+                error: function (data) {
+                    alert(data);
                 }
             });
             return false;
         }
-
 
     </script>
     }
