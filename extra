@@ -1,120 +1,25 @@
-function submitDetails() {
-            console.log('1');
-            var initiatives = $("#SelectedInitiative").find('option:selected').val();
-            var projectName = $("#SelectedProject").find('option:selected');
-            var projectJiraKey = projectName.attr('jiraKey');
-            projectName = projectName.val();
-            var epicName = $("#SelectedEpic").find('option:selected');
-            var epicIssueKey = epicName.attr('issueKey');
-            var formData = new FormData();
+@{
+    Layout = null;
+}
 
-            var taskelement = $("#SelectedTask").find('option:selected');
-            var taskOrStoryIssueKey = taskelement.attr('issueKey');
-
-
-            if (taskelement.val() == 'select') {
-                var storylement = $("#SelectedStory").find('option:selected');
-                taskOrStoryIssueKey = storylement.attr('issueKey');
-            }
-
-
-            //Option task, story, subtask, bug
-            var taskType = document.querySelector('input[name="taskStoryOpt"]:checked').value;
-            var summary = $('#summary').val();
-            var description = $('#description').val();
-
-            // Get the selected FullName and employeeEmail
-            var assigneeEmail = $("#Assignee").find('option:selected').val();
-
-            //Custome fields
-            var isBacklog = $("#isBacklog").find('option:selected').val();
-            var ragStatus = $("#ragStatus").find('option:selected').val();
-            var billingEffort = $("#billingEffort").find('option:selected').val();
-            var workstream = $("#projectCategory").find('option:selected').val();
-
-
-            //Dates
-            var actualStartDate = $("#actualStartDate").val();
-            var actualEndDate = $("#actualEndDate").val();
-            var prodReleaseDate = $("#prodReleaseDate").val();
-            var dueDate = $("#dueDate").val();
-
-
-            var status = $("#SelectedStatus").find('option:selected').val();
-            var subStatus = $("#SelectedSubStatus").find('option:selected').val();
-            // var activityType = $("#activityTypeDropdown").find('option:selected').val();
-            var priority = $("#priority").find('option:selected').val();
-            //countryDropdown
-            var countryDropdown = $("#countryDropdown").find('option:selected').val();
-            
-            // Get the value of sdTicketNo
-            var sdTicketNo = $('#sdTicketNo').val();
-            var requesterDetails = $('#requesterDetails').val();
-
-          
-
-
-            console.log(initiatives, projectName, projectJiraKey, epicIssueKey, taskOrStoryIssueKey);
-            formData.append('projectJiraKey', projectJiraKey);
-            if (taskType == "Task" || taskType == "Story") {
-                formData.append('issueKey', null);
-                formData.append('epicIssueKey', epicIssueKey);
-            } else {
-                formData.append('epicIssueKey', null);
-                formData.append('issueKey', taskOrStoryIssueKey);
-            }
-            formData.append('taskType', taskType);
-
-            formData.append('summary', summary);
-            formData.append('description', description);
-            formData.append('employeeEmail', assigneeEmail);
-            formData.append('isBacklog', isBacklog);
-            formData.append('ragStatus', ragStatus);
-            formData.append('billingEffort', billingEffort);
-            formData.append('workstream', workstream);
-
-            formData.append('actualStartDate', actualStartDate);
-            formData.append('actualEndDate', actualEndDate);
-            formData.append('prodReleaseDate', prodReleaseDate);
-            formData.append('dueDate', dueDate);
-
-            formData.append('status', status);
-            formData.append('subStatus', subStatus);
-            // formData.append('activityType', activityType);
-            formData.append('priority', priority);
-            formData.append('countryDropdown', countryDropdown);
-            formData.append('sdTicketNo', sdTicketNo);
-           
-            formData.append('requesterDetails', requesterDetails);
-
-
-            //  New code to send a post request with Basic Authentication
-            $.ajax({
-                url: '@Url.Action("CreateJiraTicket", "JiraTicketingTool")',
-                // data: { projectJiraKey: projectJiraKey, epicIssueKey: epicIssueKey, taskType: taskType, issueKey: taskOrStoryIssueKey },
-                //data: JSON.stringify({ requestTaskDetails: requestData }),
-                type: 'POST',
-                processData: false,
-                contentType: false,
-                async: true,
-                cache: false,
-                data: formData,
-                success: function (data) {
-                    console.log(data);
-                    showEndPageView(data);
-                },
-                error: function (data) {
-                    //alert(data);
-                }
-            });
-            return false;
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>End Page</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container my-5">
+        <a href="@Url.Action("Index", "JiraTicketingTool")" class="btn btn-danger float-right">Back</a>
+        @if (ViewBag.IsMessage == "Success")
+        {
+            <h2 class="text-success">Email sent successfully!</h2>
         }
-
-        function showEndPageView(isMessage) {
-            var url = '@Url.Action("EndPage", "JiraTicketingTool", new { isMessage = "__id__" })';
-            window.location.href = url.replace('__id__', isMessage);
-
-           // window.location.href = '/JiraTicketingTool/EndPage/isMessage=' + isMessage;
+        else if (ViewBag.IsMessage == "Error")
+        {
+            <h2 class="text-danger">There was an error sending the email.</h2>
         }
-    </script>
-    }
+    </div>
+</body>
+</html>
