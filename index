@@ -1,5 +1,4 @@
-
-        #region Create Ticket
+ #region Create Ticket
         [HttpPost]
         public IActionResult CreateJiraTicket(RequestTaskDetails requestTaskDetails)
         {
@@ -22,7 +21,7 @@
                     project = new Project { key = requestTaskDetails.projectJiraKey },
                     issuetype = new IssueType { name = requestTaskDetails.taskType },
                     parent = new Parent { key = requestTaskDetails.epicIssueKey != "null" ? requestTaskDetails.epicIssueKey : requestTaskDetails.issueKey },
-                    assignee = new Assignee { name = requestTaskDetails.employeeEmail },
+                    assignee = new Assignee { emailAddress = requestTaskDetails.employeeEmail },
                     customfield_10925 = new customfield_10925 { value = requestTaskDetails.isBacklog },
                     customfield_10658 = new customfield_10658 { value = requestTaskDetails.ragStatus },
                     customfield_10843 = new customfield_10843 { value = requestTaskDetails.billingEffort },
@@ -33,7 +32,13 @@
                     customfield_10829 = new customfield_10829 { value = requestTaskDetails.subStatus },
                     customfield_10088 = new customfield_10088 { value = requestTaskDetails.activityType },
                     priority = new priority { name = requestTaskDetails.priority },
-                    customfield_10691 = new customfield_10691 { value = requestTaskDetails.countryDropdown }
+                    customfield_10691 = new customfield_10691 { value = requestTaskDetails.countryDropdown },
+                    duedate = requestTaskDetails.dueDate,
+                    customfield_10689 = requestTaskDetails.prodReleaseDate,
+                    customfield_10831 = requestTaskDetails.sdTicketNo,
+                    customfield_10108 = new string[] { requestTaskDetails.requesterDetails }
+
+
                 };
 
                 var fieldsObject = new { fields };
@@ -139,6 +144,8 @@ public class Fields
     public DateTime customfield_10841 { get; set; }
     //Endate
     public DateTime customfield_10842 { get; set; }
+    public DateTime customfield_10689 { get; set; }
+    public DateTime duedate { get; set; }
 
     //status
     public customfield_10828 customfield_10828 { get; set; }
@@ -150,6 +157,12 @@ public class Fields
     public priority priority { get; set; }
     //Originating Country/Group
     public customfield_10691 customfield_10691 { get; set; }
+
+    public string customfield_10831 { get; set; }
+
+
+    //Requester Details
+    public string[] customfield_10108 { get; set; }
 
 }
 
@@ -169,7 +182,7 @@ public class IssueType
 }
 public class Assignee
 {
-    public string name { get; set; }
+    public string emailAddress { get; set; }
 
 }
 
@@ -221,3 +234,4 @@ public class customfield_10925
 {
     public string value { get; set; }
 }
+
