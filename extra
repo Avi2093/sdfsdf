@@ -1,80 +1,135 @@
-// Date validation
-function StartDatehandler(e) {
-    var actualEndDate = $("#actualEndDate").val();
-    if (actualEndDate != null && actualEndDate != '') {
-        var endDate = new Date($('#actualEndDate').val());
 
-        if (e.target.value != '') {
-            var startDate = new Date(e.target.value);
-            if (startDate > endDate) {
-                // Show notification
-                showNotification("Please select Actual End Date greater than start date", "danger");
-                $("#actualEndDate").val('');
+        #region Create Ticket
+        [HttpPost]
+        public IActionResult CreateJiraTicket(RequestTaskDetails requestTaskDetails)
+        {
+            try
+            {
+                string username = _configuration["JiraSettings:Username"];
+                string password = _configuration["JiraSettings:Password"];
+                string URL = _configuration["JiraSettings:URL"];
+
+                var client = new RestClient("https://" + URL + "/rest/api/2/issue/");
+                client.Authenticator = new HttpBasicAuthenticator(username, password);
+
+                var request = new RestRequest(Method.POST);
+
+                
+                var fields = new Fields
+                {
+                    description = requestTaskDetails.description,
+                    summary = requestTaskDetails.summary,
+                    project = new Project { key = requestTaskDetails.projectJiraKey },
+                    issuetype = new IssueType { name = requestTaskDetails.taskType },
+                    parent = new Parent { key = requestTaskDetails.epicIssueKey != "null" ? requestTaskDetails.epicIssueKey : requestTaskDetails.issueKey },
+                    assignee = new Assignee { emailAddress = requestTaskDetails.employeeEmail },
+                    customfield_10925 = new customfield_10925 { value = requestTaskDetails.isBacklog },
+                    customfield_10658 = new customfield_10658 { value = requestTaskDetails.ragStatus },
+                    customfield_10843 = new customfield_10843 { value = requestTaskDetails.billingEffort },
+                    customfield_11018 = new customfield_11018 { value = requestTaskDetails.workstream },
+                    customfield_10841 = requestTaskDetails.actualStartDate,
+                    customfield_10842 = requestTaskDetails.actualEndDate,
+                    customfield_10828 = new customfield_10828 { value = requestTaskDetails.status },
+                    customfield_10829 = new customfield_10829 { value = requestTaskDetails.subStatus },
+                    // customfield_10088 = new customfield_10088 { value = requestTaskDetails.activityType },
+                    priority = new priority { name = requestTaskDetails.priority },
+                    customfield_10691 = new customfield_10691 { value = requestTaskDetails.countryDropdown },
+                    duedate = requestTaskDetails.dueDate,
+                    customfield_10689 = requestTaskDetails.prodReleaseDate,
+                    customfield_10831 = requestTaskDetails.sdTicketNo,
+                    customfield_10108 = new string[] { requestTaskDetails.requesterDetails }
+
+
+                };
+
+                var fieldsObject = new { fields };
+                var jsonString = JsonConvert.SerializeObject(fieldsObject);
+
+                
+
+                request.AddHeader("Accept", "application/json");
+                request.AddHeader("Cache-Control", "no-cache");
+                request.AddHeader("Content-Type", "application/json");
+                request.AddParameter("application/json", jsonString, ParameterType.RequestBody);
+
+                var response = client.Execute(request);
+                var responseString = JsonConvert.SerializeObject(response);
+                //Create a method to store the log details
+                //Start UserName,Email, requester Details
+                SaveJiraLogger("Log", jsonString, "userName", "Email", "CreateJiraTicket", true, responseString);
+
+                // Call the TriggerEmailIfNeeded function to check if email should be triggered
+                var emailResponse = TriggerEmail(response);
+                return Json(emailResponse);
             }
-        } else {
-            showNotification("Please select Actual End Date", "danger");
-            e.target.value = '';
+            //catch (JsonException ex)
+            //{
+            //    // handle JsonException
+            //    return BadRequest("An error occurred while processing your request. Please try again later.");
+            //}
+            catch (Exception ex)
+            {
+                //SaveJiraLogger("Exception", ex.Message + ex.InnerException, "userName", "Email", "CreateJiraTicket", false);
+                return RedirectToAction("EndPage");
+                //  return BadRequest("An error occurred while processing your request. Please try again later.");
+            }
+
+        }
+
+        #endregion
+        public string TriggerEmail(IRestResponse response)
+        {
+            // Check if the response contains an ID, key, and self
+            JObject json = JObject.Parse(response.Content);
+
+
+            if (json["id"] != null && json["key"] != null && json["self"] != null)
+            {
+                // Check if the response contains any error codes
+                if ((int)response.StatusCode >= 400 && (int)response.StatusCode <= 599)
+                {
+                    // API returned an error status code
+                    //Create a method to store the log details
+                    //End log, UserName,Email, requester Details
+                    return "Error";
+                }
+                else
+                {
+                    // Trigger the email here
+                    // ...
+                    //ViewBag.IsMessage = "Success";
+                    return "Success";
+                }
+            }
+            else
+            {
+                // API response did not contain an ID, key, and self
+                //type - Exception
+                return "Error";
+            }
+        }
+
+        public IActionResult EndPage(string isMessage)
+        {
+            ViewData["Title"] = isMessage == "Success" ? "Success" : "Error";
+            ViewBag.IsMessage = isMessage;
+            return View();
+        }
+
+        public void SaveJiraLogger(string type, string details, string UserName, string Email, string MethodName, bool isJiraTicket,string jsonResponse)
+        {
+
+            JiraLogger logger = new JiraLogger();
+            logger.Type = type;
+            logger.Details = details;
+            logger.UserName = UserName;
+            logger.Email = Email;
+            logger.MethodName = MethodName;
+            logger.IsJiraTicket = isJiraTicket;
+            logger.CreatedDate = DateTime.Now;
+            logger.JsonResponse = jsonResponse;
+            _context.jiraLoggers.Add(logger);
+            _context.SaveChanges();
         }
     }
-}
-
-function EndDatehandler(e) {
-    var actualStartDate = $("#actualStartDate").val();
-    if (actualStartDate != null && actualStartDate != '') {
-        var startDate = new Date($('#actualStartDate').val());
-
-        if (e.target.value != '') {
-            var endDate = new Date(e.target.value);
-            if (startDate > endDate) {
-                // Show notification
-                showNotification("Please select Actual End Date greater than start date", "danger");
-                e.target.value = '';
-            }
-        } else {
-            showNotification("Please select Actual End Date", "danger");
-            e.target.value = '';
-        }
-    }
-    else {
-        showNotification("Please select Actual Start Date", "danger");
-        e.target.value = '';
-    }
-}
-
-// Production Release date
-function ProdRelaseDatehandler(e) {
-    var actualEndDate = $("#actualEndDate").val();
-    if (actualEndDate != null && actualEndDate != '') {
-        var endDate = new Date($('#actualEndDate').val());
-
-        if (e.target.value != '') {
-            var prodDate = new Date(e.target.value);
-            if (prodDate < endDate) {
-                // Show notification
-                showNotification("Please select Production Release Date greater than end date", "danger");
-                e.target.value = '';
-            }
-        } else {
-            showNotification("Please select Production Release Date", "danger");
-        }
-    } else {
-        showNotification("Please select Actual End Date first", "danger");
-        e.target.value = '';
-    }
-}
-
-// Helper function to show notifications
-function showNotification(message, type) {
-    // Create notification element
-    var notification = $('<div class="notification"></div>').addClass('notification-' + type).text(message);
-
-    // Add to page
-    $('body').append(notification);
-
-    // Fade out after 3 seconds
-    setTimeout(function () {
-        notification.fadeOut(function () {
-            $(this).remove();
-        });
-    }, 3000);
 }
