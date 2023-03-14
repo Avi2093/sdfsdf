@@ -1,14 +1,94 @@
- public void SaveJiraLogger(string type, string details, string UserName, string Email, string MethodName, bool isJiraTicket)
-        {
+<div class="form-group row">
 
-            JiraLogger logger = new JiraLogger();
-            logger.Type = type;
-            logger.Details = details;
-            logger.UserName = UserName;
-            logger.Email = Email;
-            logger.MethodName = MethodName;
-            logger.IsJiraTicket = isJiraTicket;
-            logger.CreatedDate = DateTime.Now; 
-            _context.jiraLoggers.Add(logger);
-            _context.SaveChanges();
+            <div class="col-3">
+                <label for="actualStartDate">Actual start date</label>
+                <input type="date" id="actualStartDate" name="actualStartDate" class=" form-control" onchange="StartDatehandler(event);">
+            </div>
+            <div class="col-3">
+                <label for="actualEndDate">Actual end date</label>
+                <input type="date" id="actualEndDate" name="actualEndDate" class="form-control" onchange="EndDatehandler(event);">
+            </div>
+            <div class="col-3">
+                <label for="prodReleaseDate">Production Release Date</label>
+                <input type="date" id="prodReleaseDate" name="prodReleaseDate" class="form-control" onchange="ProdRelaseDatehandler(event);">
+            </div>
+            <div class="col-3">
+                <label for="dueDate">Due Date</label>
+                <input type="date" id="dueDate" name="dueDate" class="form-control">
+            </div>
+            
+            
+            
+            
+            
+            
+            
+
+
+
+//Date validation
+function StartDatehandler(e) {
+    var actualEndDate = $("#actualEndDate").val();
+    if (actualEndDate != null && actualEndDate != '') {
+        var endDate = new Date($('#actualEndDate').val());
+
+        if (e.target.value != '') {
+            var startDate = new Date(e.target.value);
+            if (startDate > endDate) {
+                // Do something
+                alert("Please select Actual End Date greater then start date");
+                $("#actualEndDate").val('');
+            }
+        } else {
+            alert("Please select Actual End Date");
+            e.target.value = '';
         }
+    }
+}
+
+function EndDatehandler(e) {
+    var actualStartDate = $("#actualStartDate").val();
+    if (actualStartDate != null && actualStartDate != '') {
+        var startDate = new Date($('#actualStartDate').val());
+
+        if (e.target.value != '') {
+            var endDate = new Date(e.target.value);
+            if (startDate > endDate) {
+                // Do something
+                alert("Please select Actual End Date greater then start date");
+                e.target.value = '';
+            }
+        } else {
+            alert("Please select Actual End Date");
+            e.target.value = '';
+        }
+    }
+    else {
+
+        alert("Please select Actual Start Date");
+        e.target.value = '';
+    }
+}
+
+//Prodcuction Release date
+function ProdRelaseDatehandler(e) {
+    var actualEndDate = $("#actualEndDate").val();
+    if (actualEndDate != null && actualEndDate != '') {
+        var endDate = new Date($('#actualEndDate').val());
+
+        if (e.target.value != '') {
+            var prodDate = new Date(e.target.value);
+            if (prodDate < endDate) {
+                // Do something
+                alert("Please select Prodction release Date greater then end date");
+                e.target.value = '';
+            }
+        } else {
+            alert("Please select Production release Date");
+        }
+    } else {
+
+        alert("Please select Actual End Date First!!");
+        e.target.value = '';
+    }
+}
