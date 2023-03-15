@@ -1,1 +1,80 @@
-.
+function GetAssigneeDetails() {
+    $.ajax({
+        url: "/JiraTicketingTool/GetAssignee",
+        type: "GET",
+        dataType: "json",
+        success: function (data) {
+            var options = "";
+            for (var i = 0; i < data.length; i++) {
+                options += "<option value='" + data[i].employeeEmail + "'>" + data[i].firstName + " " + data[i].lastName + " (" + data[i].loginId + ")" + "</option>";
+            }
+            $("#Assignee").append(options);
+            // Initialize Select2 plugin
+            $('#Assignee').select2();
+        }
+    });
+}
+
+
+
+
+ <div class="col-6">
+                <label for="Assignee">Assignee<span class="required"></span></label>
+                <select id="Assignee" class="form-control" required>
+                    <option value=""> Select Assignee</option>
+                </select>
+            </div>
+            
+            
+            
+            
+
+
+ <div class="col-8">
+                <label for="requesterDetails">Requester Details</label>
+                <input type="text" id="requesterDetails" name="requesterDetails" style="width: 100%" class="form-control"
+                       pattern="[A-Za-z0-9_-]+"
+                       oninput="validateInput(this)">
+                <div id="inputError" style="color: red; display: none">Invalid input. Only hyphens or underscores are allowed.</div>
+            </div>
+            
+            
+            
+            
+            //Requester Details
+function validateInput(inputField) {
+    var input = inputField.value;
+    var regex = /^[A-Za-z0-9_-]+$/;
+    var errorDiv = document.getElementById("inputError");
+
+    if (!regex.test(input)) {
+        errorDiv.style.display = "block";
+    } else {
+        errorDiv.style.display = "none";
+    }
+}
+//250 Character only for description
+
+    function updateCharCount(textarea) {
+    var charCount = document.getElementById("charCount");
+    var remainingChars = 250 - textarea.value.length;
+    charCount.innerHTML = textarea.value.length;
+    if (remainingChars < 0) {
+        charCount.style.color = "red";
+    } else {
+        charCount.style.color = "inherit";
+    }
+}
+
+
+
+
+
+<div class="col-11" style="width: 96.666667% !important; ">
+                                <div class="form-group">
+                                    <label for="description">Description<span class="required">*</span></label>
+                                    <textarea id="description" name="description" rows="6" cols="50" class="form-control" required maxlength="250"
+                                              oninput="updateCharCount(this)"></textarea>
+                                    <small><span id="charCount">0</span>/250 characters</small>
+                                </div>
+                            </div>
