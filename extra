@@ -1,16 +1,25 @@
-.
-// Requester Details
-var inputField = document.getElementById("requesterDetails");
-inputField.addEventListener("input", validateInput);
-
-function validateInput(inputField) {
-    var input = inputField.value;
+function validateInput() {
+    var inputField = document.getElementById("requesterDetails");
+    var input = inputField.value.trim();
     var regex = /^[A-Za-z0-9_-]+$/;
     var errorDiv = document.getElementById("inputError");
+    var helpText = document.getElementById("helpText");
 
     if (!regex.test(input)) {
         errorDiv.style.display = "block";
+        helpText.style.display = "none";
     } else {
         errorDiv.style.display = "none";
+        helpText.style.display = "block";
     }
 }
+
+
+
+
+ <div class="col-8">
+                <label for="requesterDetails">Requester Details</label>
+                <input type="text" id="requesterDetails" name="requesterDetails" style="width: 100%" class="form-control" oninput="validateInput()">
+                <div id="inputError" style="color: red; display: none">Invalid input. Only hyphens or underscores are allowed.</div>
+                <div id="helpText" style="color: gray;">Enter requester details using only hyphens or underscores.</div>
+            </div>
