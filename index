@@ -1,237 +1,30 @@
- #region Create Ticket
-        [HttpPost]
-        public IActionResult CreateJiraTicket(RequestTaskDetails requestTaskDetails)
-        {
-            try
-            {
-                string username = _configuration["JiraSettings:Username"];
-                string password = _configuration["JiraSettings:Password"];
-                string URL = _configuration["JiraSettings:URL"];
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Jira Task Update</title>
+  </head>
+  <body style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5; color: #333;">
+    <div style="background-color: #fff; border: 1px solid #ccc; border-radius: 5px; padding: 20px;">
 
-                var client = new RestClient("https://" + URL + "/rest/api/2/issue/");
-                client.Authenticator = new HttpBasicAuthenticator(username, password);
+      <h2 style="font-size: 24px; margin-bottom: 0;">Jira Task Update</h2>
+      <hr style="border: none; border-top: 1px solid #ccc; margin: 10px 0;" />
 
-                var request = new RestRequest(Method.POST);
+      <p>Dear {{FirstName}} {{LastName}},</p>
 
+      <p>We are writing to inform you that a task has been assigned to you. Please log in to your Jira account to view the details.</p>
 
-                var fields = new Fields
-                {
-                    description = requestTaskDetails.description,
-                    summary = requestTaskDetails.summary,
-                    project = new Project { key = requestTaskDetails.projectJiraKey },
-                    issuetype = new IssueType { name = requestTaskDetails.taskType },
-                    parent = new Parent { key = requestTaskDetails.epicIssueKey != "null" ? requestTaskDetails.epicIssueKey : requestTaskDetails.issueKey },
-                    assignee = new Assignee { emailAddress = requestTaskDetails.employeeEmail },
-                    customfield_10925 = new customfield_10925 { value = requestTaskDetails.isBacklog },
-                    customfield_10658 = new customfield_10658 { value = requestTaskDetails.ragStatus },
-                    customfield_10843 = new customfield_10843 { value = requestTaskDetails.billingEffort },
-                    customfield_11018 = new customfield_11018 { value = requestTaskDetails.workstream },
-                    customfield_10841 = requestTaskDetails.actualStartDate,
-                    customfield_10842 = requestTaskDetails.actualEndDate,
-                    customfield_10828 = new customfield_10828 { value = requestTaskDetails.status },
-                    customfield_10829 = new customfield_10829 { value = requestTaskDetails.subStatus },
-                    customfield_10088 = new customfield_10088 { value = requestTaskDetails.activityType },
-                    priority = new priority { name = requestTaskDetails.priority },
-                    customfield_10691 = new customfield_10691 { value = requestTaskDetails.countryDropdown },
-                    duedate = requestTaskDetails.dueDate,
-                    customfield_10689 = requestTaskDetails.prodReleaseDate,
-                    customfield_10831 = requestTaskDetails.sdTicketNo,
-                    customfield_10108 = new string[] { requestTaskDetails.requesterDetails }
+      <div style="text-align: center;">
+        <img src="{{ImagePath}}" alt="Image" style="max-width: 100%; height: auto;" />
+      </div>
 
+      <hr style="border: none; border-top: 1px solid #ccc; margin: 10px 0;" />
 
-                };
+      <p style="font-size: 12px;">This is an automated email, please do not reply.</p>
 
-                var fieldsObject = new { fields };
-                var jsonString = JsonConvert.SerializeObject(fieldsObject);
-                request.AddHeader("Accept", "application/json");
-                request.AddHeader("Cache-Control", "no-cache");
-                request.AddHeader("Content-Type", "application/json");
-                request.AddParameter("application/json", jsonString, ParameterType.RequestBody);
-
-                var response = client.Execute(request);
-                // Call the TriggerEmailIfNeeded function to check if email should be triggered
-                var  emailResponse =  TriggerEmail(response);
-                return Json(emailResponse);
-            }
-            //catch (JsonException ex)
-            //{
-            //    // handle JsonException
-            //    return BadRequest("An error occurred while processing your request. Please try again later.");
-            //}
-            catch (Exception ex)
-            {
-                return RedirectToAction("EndPage");
-                //  return BadRequest("An error occurred while processing your request. Please try again later.");
-            }
-           
-        }
-
-
-        #endregion
-        public string TriggerEmail(IRestResponse response)
-        {
-            // Check if the response contains an ID, key, and self
-            JObject json = JObject.Parse(response.Content);
-            if (json["id"] != null && json["key"] != null && json["self"] != null)
-            {
-                // Check if the response contains any error codes
-                if ((int)response.StatusCode >= 400 && (int)response.StatusCode <= 599)
-                {
-                    // API returned an error status code
-                    //ViewBag.IsMessage = "Error";
-                    return "Error";
-                }
-                else
-                {
-                    // Trigger the email here
-                    // ...
-                    //ViewBag.IsMessage = "Success";
-                    return "Success";
-                }
-            }
-            else
-            {
-                // API response did not contain an ID, key, and self
-                //ViewBag.IsMessage = "Error";
-                return "Error";
-                //return RedirectToAction("EndPage", new { isMessage = ViewBag.IsMessage });
-            }
-        }
-
-
-        public IActionResult EndPage(string isMessage)
-        {
-            ViewData["Title"] = isMessage == "Success" ? "Success" : "Error";
-            ViewBag.IsMessage = isMessage;
-            return View();
-        }
-    }
-}
-
-public class Issue
-{
-    public string key { get; set; }
-    public Fields fields { get; set; }
-}
-
-public class Fields
-{
-    public Project project { get; set; }
-    public IssueType issuetype { get; set; }
-    public Parent parent { get; set; }
-    public string summary { get; set; }
-    public string description { get; set; }
-
-
-    public Assignee assignee { get; set; }
-
-
-    //Custom fields IsBacklog
-    public customfield_10925 customfield_10925 { get; set; }
-
-
-
-    //RAG Status:
-    public customfield_10658 customfield_10658 { get; set; }
-
-    //Billing Effort:
-    public customfield_10843 customfield_10843 { get; set; }
-
-    //work stream
-    public customfield_11018 customfield_11018 { get; set; }
-
-    //startdate
-    public DateTime customfield_10841 { get; set; }
-    //Endate
-    public DateTime customfield_10842 { get; set; }
-    public DateTime customfield_10689 { get; set; }
-    public DateTime duedate { get; set; }
-
-    //status
-    public customfield_10828 customfield_10828 { get; set; }
-    //sub stauts
-    public customfield_10829 customfield_10829 { get; set; }
-    //Activity Type
-    public customfield_10088 customfield_10088 { get; set; }
-    //priority
-    public priority priority { get; set; }
-    //Originating Country/Group
-    public customfield_10691 customfield_10691 { get; set; }
-
-    public string customfield_10831 { get; set; }
-
-
-    //Requester Details
-    public string[] customfield_10108 { get; set; }
-
-}
-
-public class Project
-{
-    public string key { get; set; }
-}
-public class Parent
-{
-    public string key { get; set; }
-}
-
-public class IssueType
-{
-    public string name { get; set; }
-
-}
-public class Assignee
-{
-    public string emailAddress { get; set; }
-
-}
-
-//workstream
-public class customfield_11018
-{
-    public string value { get; set; }
-}
-
-//RagStatus
-public class customfield_10658
-{
-    public string value { get; set; }
-}
-//Billing Effort
-public class customfield_10843
-{
-    public string value { get; set; }
-}
-//status
-public class customfield_10828
-{
-    public string value { get; set; }
-}
-
-//SubStatus
-public class customfield_10829
-{
-    public string value { get; set; }
-}
-//Activity Type
-public class customfield_10088
-{
-    public string value { get; set; }
-}
-
-public class priority
-{
-    public string name { get; set; }
-}
-
-//Originating Country/Group
-public class customfield_10691
-{
-    public string value { get; set; }
-}
-//IsBacklog
-public class customfield_10925
-{
-    public string value { get; set; }
-}
-
+    </div>
+    <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #999;">
+      <p>From XYZ Team</p>
+    </div>
+  </body>
+</html>
