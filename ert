@@ -1,126 +1,33 @@
-document.addEventListener('DOMContentLoaded', function () {
-// Date validation
-function StartDatehandler(e) {
-    var actualEndDate = $("#actualEndDate").val();
-    if (actualEndDate != null && actualEndDate != '') {
-        var endDate = new Date($('#actualEndDate').val());
+public string htmlBody()
+{
+    return @"<html lang=""en"">
+<head>
+    <meta charset=""UTF-8"" />
+    <title>Jira Task Update</title>
+</head>
+<body style=""font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5; color: #333;"">
+    <div style=""background-color: #fff; border: 1px solid #ccc; border-radius: 5px; padding: 20px;"">
 
-        if (e.target.value != '') {
-            var startDate = new Date(e.target.value);
-            if (startDate > endDate) {
-                // Show notification
-                showNotification("Please select Actual End Date greater than start date", "danger");
-                $("#actualEndDate").val('');
-            }
-        } else {
-            showNotification("Please select Actual End Date", "danger");
-            e.target.value = '';
-        }
-    }
+        <h2 style=""font-size: 24px; margin-bottom: 0;"">Jira Task Update</h2>
+        <hr style=""border: none; border-top: 1px solid #ccc; margin: 10px 0;"" />
+
+        <p>Dear #firstName #LastName,</p>
+
+        <p>We are writing to inform you that a task has been assigned to you. Please log in to your Jira account to view the details.</p>
+
+        <hr style=""border: none; border-top: 1px solid #ccc; margin: 10px 0;"" />
+
+        <p style=""color: red;""><strong>Thanks,</strong></p>
+        <p style=""color: #666; font-size: 12px;""><em>VJINFOTECH</em></p>
+
+    </div>
+    <div style=""text-align: center; margin-top: 20px; font-size: 12px; color: #999;"">
+        <p><strong>From XYZ Team</strong></p>
+    </div>
+    <hr style=""border: none; border-top: 1px solid red; margin: 10px 0;"" />
+    <p style=""font-size: 12px; color: red;""><em>This is an automated email, please do not reply.</em></p>
+</body>
+</html>
+
+                     ";
 }
-
-function EndDatehandler(e) {
-    var actualStartDate = $("#actualStartDate").val();
-    if (actualStartDate != null && actualStartDate != '') {
-        var startDate = new Date($('#actualStartDate').val());
-
-        if (e.target.value != '') {
-            var endDate = new Date(e.target.value);
-            if (startDate > endDate) {
-                // Show notification
-                showNotification("Please select Actual End Date greater than start date", "danger");
-                e.target.value = '';
-            }
-        } else {
-            showNotification("Please select Actual End Date", "danger");
-            e.target.value = '';
-        }
-    }
-    else {
-        showNotification("Please select Actual Start Date", "danger");
-        e.target.value = '';
-    }
-}
-
-// Production Release date
-function ProdRelaseDatehandler(e) {
-    var actualEndDate = $("#actualEndDate").val();
-    if (actualEndDate != null && actualEndDate != '') {
-        var endDate = new Date($('#actualEndDate').val());
-
-        if (e.target.value != '') {
-            var prodDate = new Date(e.target.value);
-            if (prodDate < endDate) {
-                // Show notification
-                showNotification("Please select Production Release Date greater than end date", "danger");
-                e.target.value = '';
-            }
-        } else {
-            showNotification("Please select Production Release Date", "danger");
-        }
-    } else {
-        showNotification("Please select Actual End Date first", "danger");
-        e.target.value = '';
-    }
-}
-
-// Helper function to show notifications
-function showNotification(message, type) {
-    // Create notification element
-    var notification = $('<div class="notification"></div>').addClass('notification-' + type).text(message);
-
-    // Add to page
-    $('body').append(notification);
-
-    // Fade out after 3 seconds
-    setTimeout(function () {
-        notification.fadeOut(function () {
-            $(this).remove();
-        });
-    }, 3000);
-}
-
-
-//250 Character only for description
-
-    function updateCharCount(textarea) {
-    var charCount = document.getElementById("charCount");
-    var remainingChars = 250 - textarea.value.length;
-    charCount.innerHTML = textarea.value.length;
-    if (remainingChars < 0) {
-        charCount.style.color = "red";
-    } else {
-        charCount.style.color = "inherit";
-    }
-    }
-    function validateInput() {
-        var inputField = document.getElementById("requesterDetails");
-        var input = inputField.value.trim();
-        var regex = /^[A-Za-z0-9_-]+$/;
-        var errorDiv = document.getElementById("inputError");
-        var helpText = document.getElementById("helpText");
-
-        if (!regex.test(input)) {
-            errorDiv.style.display = "block";
-            helpText.style.display = "none";
-        } else {
-            errorDiv.style.display = "none";
-            helpText.style.display = "block";
-        }
-    }
-
-    // Attach event listeners
-    document.getElementById("actualStartDate").addEventListener("blur", StartDatehandler);
-    document.getElementById("actualEndDate").addEventListener("blur", EndDatehandler);
-    document.getElementById("prodReleaseDate").addEventListener("blur", ProdRelaseDatehandler);
-    document.getElementById("description").addEventListener("keyup", function () {
-        updateCharCount(this);
-    });
-    document.getElementById("requesterDetails").addEventListener("blur", function () {
-        validateInput();
-    });
-});
- 
-
-
-
