@@ -80,3 +80,13 @@ return Json(emailResponse);
 
                      ";
         }
+ public List<xref_productdevelopment_team> GetAssigneeDetails(string emailAddress)
+        {
+            List<xref_productdevelopment_team> assigneeDetails = new List<xref_productdevelopment_team>();
+            assigneeDetails = _context.xref_productdevelopment_team
+                .Where(e => e.active == 1 && e.employeeEmail == emailAddress)
+                .Select(e => new xref_productdevelopment_team { firstName = e.firstName, lastName = e.lastName, employeeEmail = e.employeeEmail })
+                .ToList();
+
+            return assigneeDetails;
+        }
