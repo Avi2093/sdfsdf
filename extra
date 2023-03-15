@@ -1,1 +1,16 @@
 .
+// Requester Details
+var inputField = document.getElementById("requesterDetails");
+inputField.addEventListener("input", validateInput);
+
+function validateInput(inputField) {
+    var input = inputField.value;
+    var regex = /^[A-Za-z0-9_-]+$/;
+    var errorDiv = document.getElementById("inputError");
+
+    if (!regex.test(input)) {
+        errorDiv.style.display = "block";
+    } else {
+        errorDiv.style.display = "none";
+    }
+}
