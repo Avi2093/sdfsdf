@@ -1,16 +1,79 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<nlog xmlns="http://www.nlog-project.org/schemas/NLog.xsd"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      autoReload="true"
-      internalLogLevel="Trace"
-      internalLogFile="internalLog.txt"
-      internalLogToConsole="true"
-      internalLogToConsoleError="true"
-      internalLogToTrace="true"
-      internalLogIncludeTimestamp="true"
-      internalLogIncludeSourceInfo="true"
-      internalLogIncludeMdc="true"
-      internalLogIncludeMdlc="true"
-      internalLogKeepFileOpen="false"
-      internalLogAutoFlush="true"
-      internalLogFlushTimeout="5">
+using System;
+using System.Net;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
+//using NLog.Web;
+using Microsoft.AspNetCore.Mvc;
+using EmployeePortal.API.Extensions;
+using System.Text.Json;
+using NLog.Web;
+using NLog;
+using NLog.Common;
+using System.Drawing.Text;
+using System.Net.NetworkInformation;
+
+namespace EmployeePortal.API.Middleware
+{
+    public class ExceptionMiddleware
+    {
+        private readonly RequestDelegate _next;
+        private static System.Timers.Timer atimer;
+
+        public ExceptionMiddleware(RequestDelegate next)
+        {
+            this._next = next;
+        }
+
+        public async Task Invoke(HttpContext context)
+        {
+            try
+            {
+                await this._next(context);
+            }
+            catch (ApiException ex)
+            {
+                await HandleExceptions(context, ex);
+            }
+            catch (Exception ex)
+            {
+                await HandleExceptions(context, ex);
+            }
+            finally
+            {
+                atimer = new System.Timers.Timer(1000);
+                atimer.Elapsed += (s, e) => File.Delete("internalLog.txt");
+                atimer.Enabled= true;
+                NLog.LogManager.Shutdown();
+                //InternalLogger.Reset();
+                //LogManager.Flush(TimeSpan.FromSeconds(5));
+            }
+        }
+
+        private static async Task HandleExceptions(HttpContext context, Exception ex)
+        {
+            var statusCode = HttpStatusCode.InternalServerError;
+            var message = "An error occurred while processing your request.";
+
+            if (ex is SqlException || ex is InvalidOperationException)
+            {
+                statusCode = HttpStatusCode.InternalServerError;
+                message = "An error occurred: " + ex.Message;
+            }
+
+            //var logger = NLogBuilder.ConfigureNLog("NLog.config").GetCurrentClassLogger();
+            var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+            //var logger = NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger();
+            logger.Error(ex, message);
+
+            var result = JsonSerializer.Serialize(new { error = message });
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = (int)statusCode;
+            await context.Response.WriteAsync(result);
+        }
+
+
+
+    }
+
+}
