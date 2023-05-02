@@ -1,41 +1,16 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace CoreDemo.Controllers
-{
-    public class WriterController : Controller
-    {
-        
-        public IActionResult Index()
-        {
-            return View();
-        }
-        public IActionResult WriterProfile()
-        {
-            return View();
-        }
-        public IActionResult WriterMail()
-        {
-            return View();
-        }
-        [AllowAnonymous]
-        public IActionResult Test()
-        {
-            return View();
-        }
-        [AllowAnonymous]
-        public PartialViewResult WriterNavbarPartial()
-        {
-            return PartialView();
-        }
-        [AllowAnonymous]
-        public PartialViewResult WriterFooterPartial()
-        {
-            return PartialView();
-        }
-    }
-}
+<?xml version="1.0" encoding="utf-8" ?>
+<nlog xmlns="http://www.nlog-project.org/schemas/NLog.xsd"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      autoReload="true"
+      internalLogLevel="Trace"
+      internalLogFile="internalLog.txt"
+      internalLogToConsole="true"
+      internalLogToConsoleError="true"
+      internalLogToTrace="true"
+      internalLogIncludeTimestamp="true"
+      internalLogIncludeSourceInfo="true"
+      internalLogIncludeMdc="true"
+      internalLogIncludeMdlc="true"
+      internalLogKeepFileOpen="false"
+      internalLogAutoFlush="true"
+      internalLogFlushTimeout="5">
