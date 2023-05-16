@@ -1,1 +1,176 @@
-g
+using System.Net;
+
+namespace EmployeePortal.API.Middleware
+{
+    public class ApiException : Exception
+    {
+        private HttpStatusCode _httpStatusCode = HttpStatusCode.InternalServerError;
+
+        public ApiException() { }
+        public ApiException(string message) : base(message) { }
+
+        public HttpStatusCode HttpStatusCode
+        {
+            get { return _httpStatusCode; }
+            set { _httpStatusCode = value; }
+        }
+    }
+
+    public class NotFoundApiException : ApiException
+    {
+        public NotFoundApiException() { }
+        public NotFoundApiException(string message) : base(message) { }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+ public async Task<object> UpdateTool(int id, AllTools.UpdateToolRequest tool)
+        {
+            try
+            {
+            
+
+            // Implement your logic to update an existing tool using the "commit_alltools" stored procedure
+            var parameters = new DynamicParameters();
+            parameters.Add("@action", "UPDATE");
+            parameters.Add("@id", id);
+            parameters.Add("@name", tool.Name);
+            parameters.Add("@url", tool.Url);
+            parameters.Add("@active", tool.Active);
+
+            var result = await _dbConnection.ExecuteAsync("commit_alltools", parameters, commandType: CommandType.StoredProcedure);
+            if (result != null)
+            {
+                return "Record updated successfully!";
+            }
+            else
+            {
+                return "Failed to update record!" ;
+            }
+           
+            }
+            catch (Exception ex)
+            {
+                throw new ApiException(ex.Message);
+            }
+        }
+
+
+        public async Task<object> DeleteTool(AllTools.DeleteToolRequest tool)
+        {
+            try
+            {
+                // Implement your logic to delete a tool using the "commit_alltools" stored procedure
+                var parameters = new DynamicParameters();
+                parameters.Add("@action", "DELETE");
+                parameters.Add("@id", tool.Id);
+                parameters.Add("@name", "");
+                parameters.Add("@url", "");
+                parameters.Add("@active", "");
+
+                var rowsAffected = await _dbConnection.ExecuteAsync("commit_alltools", parameters, commandType: CommandType.StoredProcedure);
+
+                if (rowsAffected > 0)
+                {
+                    return "Record deleted successfully!";
+                }
+                else
+                {
+                   
+                    var notFoundException = new NotFoundApiException("Record not found");
+                    notFoundException.HttpStatusCode = HttpStatusCode.InternalServerError; // Set the desired HTTP status code
+                    throw notFoundException;
+
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new ApiException(ex.Message);
+            }
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+         [HttpPut("update/{id}")]
+        public async Task<IActionResult> UpdateTool(int id, AllTools.UpdateToolRequest tool)
+        {
+           
+            if (id == 0)
+            {
+                return BadRequest(new { Message = "Bad Request" });
+            }
+
+            var result = await _ccmsRepository.UpdateTool(id, tool);
+            return Ok(result);
+        }
+
+       
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTool(int id)
+        {
+            if (id == 0)
+            {
+                return BadRequest(new { Message = "Bad Request" });
+            }
+
+            var deleteRequest = new AllTools.DeleteToolRequest { Id = id };
+            var result = await _ccmsRepository.DeleteTool(deleteRequest);
+
+            return Ok(result);
+        }
