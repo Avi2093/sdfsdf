@@ -1,189 +1,25 @@
-public async Task<object> UpdateTool(int id, AllTools.UpdateToolRequest tool)
+using System.Net;
+
+namespace EmployeePortal.API.Middleware
+{
+    public class ApiException : Exception
+    {
+        private HttpStatusCode _httpStatusCode = HttpStatusCode.InternalServerError;
+
+        public ApiException() { }
+        public ApiException(string message) : base(message) { }
+        public ApiException(string message, Exception innerException) : base(message, innerException) { }
+
+        public HttpStatusCode HttpStatusCode
         {
-            try
-            {
-                tool.Id = id;
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@action", "UPDATE");
-                parameters.Add("@id", tool.Id);
-                parameters.Add("@name", tool.Name);
-                parameters.Add("@url", tool.Url);
-                parameters.Add("@active", tool.Active);
-
-                var result = await _dbConnection.ExecuteAsync("commit_alltools", parameters, commandType: CommandType.StoredProcedure);
-
-                if (result > 0)
-                {
-                    return "Record updated successfully!";
-                }
-                else if (result == 0)
-                {
-                    var notFoundException = new NotFoundApiException("No rows were affected. The record may not exist.");
-                    notFoundException.HttpStatusCode = HttpStatusCode.InternalServerError; // Set the desired HTTP status code
-                    throw notFoundException;
-                }
-                else
-                {
-                    var notFoundException = new NotFoundApiException("Failed to update record!");
-                    notFoundException.HttpStatusCode = HttpStatusCode.InternalServerError; // Set the desired HTTP status code
-                    throw notFoundException;
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new ApiException(ex.Message);
-            }
+            get { return _httpStatusCode; }
+            set { _httpStatusCode = value; }
         }
+    }
 
-
-
-
-
-
-
-        public async Task<object> DeleteTool(AllTools.DeleteToolRequest tool)
-        {
-            try
-            {
-                // Implement your logic to delete a tool using the "commit_alltools" stored procedure
-                var parameters = new DynamicParameters();
-                parameters.Add("@action", "DELETE");
-                parameters.Add("@id", tool.Id);
-                parameters.Add("@name", "");
-                parameters.Add("@url", "");
-                parameters.Add("@active", "");
-
-                var rowsAffected = await _dbConnection.ExecuteAsync("commit_alltools", parameters, commandType: CommandType.StoredProcedure);
-
-                if (rowsAffected > 0)
-                {
-                    return "Record deleted successfully!";
-                }
-                else
-                {
-                   
-                    var notFoundException = new NotFoundApiException("Record not found");
-                    notFoundException.HttpStatusCode = HttpStatusCode.InternalServerError; // Set the desired HTTP status code
-                    throw notFoundException;
-
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new ApiException(ex.Message);
-            }
-        }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-         public async Task<object> GetRoleById(int ccmsid)
-        {
-            try
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("@ccmsid", ccmsid, DbType.Int32);
-
-                var result = await _dbConnection.QueryAsync<object>("sel_role", parameters, commandType: CommandType.StoredProcedure);
-                var role = result.FirstOrDefault();
-
-                if (role == null)
-                {
-                    var notFoundException = new NotFoundApiException("Record not found");
-                    notFoundException.HttpStatusCode = HttpStatusCode.NotFound; 
-                    throw notFoundException;
-                }
-
-                return role;
-            }
-            catch (Exception ex)
-            {
-                throw new ApiException(ex.Message);
-            }
-        }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-          private static async Task HandleExceptions(HttpContext context, Exception ex)
-        {
-            var statusCode = HttpStatusCode.InternalServerError;
-            var message = "An error occurred while processing your request.";
-
-            if (ex is SqlException || ex is InvalidOperationException)
-            {
-                statusCode = HttpStatusCode.InternalServerError;
-                message = "An error occurred: " + ex.Message;
-            }
-            else if (ex is ApiException apiException)
-            {
-                if (apiException is NotFoundApiException)
-                {
-                    statusCode = HttpStatusCode.NotFound;
-                    message = ex.Message;
-                }
-                else
-                {
-                    statusCode = apiException.HttpStatusCode;
-                    message = ex.Message;
-                }
-            }
-
-
-            var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
-           
-            logger.Error(ex, message);
-
-            var result = JsonSerializer.Serialize(new { error = message });
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)statusCode;
-            await context.Response.WriteAsync(result);
-        }
+    public class NotFoundApiException : ApiException
+    {
+        public NotFoundApiException() { }
+        public NotFoundApiException(string message) : base(message) { }
+    }
+}
