@@ -1,2 +1,34 @@
-.
-d
+ #region RolesAPI
+        public async Task<object> GetRoleById(int ccmsid)
+        {
+            try
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@ccmsid", ccmsid, DbType.Int32);
+
+                var result = await _dbConnection.QueryAsync<object>("sel_role", parameters, commandType: CommandType.StoredProcedure);
+                return result.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                throw new ApiException(ex.Message);
+            }
+        }
+
+
+        #endregion
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
