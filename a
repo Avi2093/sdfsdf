@@ -1,34 +1,10 @@
- #region RolesAPI
-        public async Task<object> GetRoleById(int ccmsid)
+ public async Task<IActionResult> GetRoleById([FromQuery, Required] int ccmsid)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                var parameters = new DynamicParameters();
-                parameters.Add("@ccmsid", ccmsid, DbType.Int32);
+                return BadRequest(ModelState);
+            }
 
-                var result = await _dbConnection.QueryAsync<object>("sel_role", parameters, commandType: CommandType.StoredProcedure);
-                return result.FirstOrDefault();
-            }
-            catch (Exception ex)
-            {
-                throw new ApiException(ex.Message);
-            }
+            var role = await _epRepository.GetRoleById(ccmsid);
+            return Ok(role);
         }
-
-
-        #endregion
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
