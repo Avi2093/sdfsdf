@@ -1,1 +1,34 @@
-.
+public async Task<ResponseModel> UpdateTool(int id, AllTools.UpdateToolRequest tool)
+{
+    try
+    {
+        tool.Id = id;
+
+        var parameters = new DynamicParameters();
+        parameters.Add("@action", "UPDATE");
+        parameters.Add("@id", tool.Id);
+        parameters.Add("@name", tool.Name);
+        parameters.Add("@url", tool.Url);
+        parameters.Add("@active", tool.Active);
+
+        int rowsAffected = await _dbConnection.ExecuteAsync("commit_alltools", parameters, commandType: CommandType.StoredProcedure);
+
+        if (rowsAffected > 0)
+        {
+            // Fetch the updated tool from the database
+            var updatedTool = await _dbConnection.QuerySingleOrDefaultAsync<AllTools.UpdateToolRequest>(
+                "SELECT * FROM dbo.ep_alltools WHERE Id = @id", new { id });
+
+            if (updatedTool != null)
+            {
+                return ApiResponse.CreateSuccessResponse(responseArray: new[] { updatedTool }, message: "Record updated successfully!");
+            }
+        }
+
+        return ApiResponse.CreateErrorResponse("Record not found or failed to update!");
+    }
+    catch (Exception ex)
+    {
+        return ApiResponse.CreateErrorResponse(ex.Message);
+    }
+}
