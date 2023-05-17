@@ -1,1 +1,52 @@
 
+public async Task<ResponseModel> InsertTool(AllTools.InsertToolRequest tool)
+        {
+            ResponseModel? response = null;
+            try
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@action", "INSERT");
+                parameters.Add("@name", tool.Name);
+                parameters.Add("@url", tool.Url);
+                parameters.Add("@active", tool.Active);
+                await _dbConnection.ExecuteAsync("commit_alltools", parameters, commandType: CommandType.StoredProcedure);
+                response = ApiResponse.CreateSucessResponse(responseObject: tool, message: "Inserted Successfully!");
+
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+            finally
+            {
+                response ??= ApiResponse.CreateErrorResponse("something went wrong!");
+            }
+            return response;
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        using EmployeePortal.API.Models;
+using Newtonsoft.Json;
+
+namespace EmployeePortal.API.common
+{
+    public static class ApiResponse
+    {
+        public static ResponseModel CreateSucessResponse(object? responseObject = null, string message = "") =>
+     new ResponseModel(JsonConvert.SerializeObject(responseObject), message, true);
+
+
+
+        public static ResponseModel CreateErrorResponse(string errorMessage) => new(null, errorMessage, false);
+    }
+}
