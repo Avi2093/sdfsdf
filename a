@@ -11,24 +11,23 @@ public async Task<ResponseModel> UpdateTool(int id, AllTools.UpdateToolRequest t
         parameters.Add("@url", tool.Url);
         parameters.Add("@active", tool.Active);
 
-        int rowsAffected = await _dbConnection.ExecuteAsync("commit_alltools", parameters, commandType: CommandType.StoredProcedure);
+        await _dbConnection.ExecuteAsync("commit_alltools", parameters, commandType: CommandType.StoredProcedure);
 
-        if (rowsAffected > 0)
+        // Fetch the updated tool from the database
+        var updatedTool = await _dbConnection.QuerySingleOrDefaultAsync<AllTools.UpdateToolRequest>(
+            "SELECT * FROM dbo.ep_alltools WHERE Id = @id", new { id });
+
+        if (updatedTool != null)
         {
-            // Fetch the updated tool from the database
-            var updatedTool = await _dbConnection.QuerySingleOrDefaultAsync<AllTools.UpdateToolRequest>(
-                "SELECT * FROM dbo.ep_alltools WHERE Id = @id", new { id });
-
-            if (updatedTool != null)
-            {
-                return ApiResponse.CreateSuccessResponse(responseArray: new[] { updatedTool }, message: "Record updated successfully!");
-            }
+            return ApiResponse.CreateSuccessResponse(responseArray: new[] { updatedTool }, message: "Record updated successfully!");
         }
-
-        return ApiResponse.CreateErrorResponse("Record not found or failed to update!");
+        else
+        {
+            return ApiResponse.CreateErrorResponse("Record not found or failed to update!");
+        }
     }
     catch (Exception ex)
     {
-        return ApiResponse.CreateErrorResponse(ex.Message);
+        throw new ApiException(ex.Message);
     }
 }
