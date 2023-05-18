@@ -1,27 +1,62 @@
- public async Task<ResponseModel> GetRoleById(int ccmsid)
+public async Task<ResponseModel> GetMenu()
+{
+    try
+    {
+        var result = await _dbConnection.QueryAsync<object>("sel_menus", commandType: CommandType.StoredProcedure);
+        var responseArray = result.ToArray();
+
+        if (responseArray.Length > 0)
         {
-            ResponseModel? response = null;
-            try
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("@ccmsid", ccmsid, DbType.Int32);
-
-                var result = await _dbConnection.QueryAsync<object>("sel_role", parameters, commandType: CommandType.StoredProcedure);
-                var responseArray = result.ToArray();
-
-                if (responseArray.Length > 0)
-                {
-                    response = ApiResponse.CreateSuccessResponse(responseArray, "Retrieved Successfully!");
-                }
-                else
-                {
-                    response = ApiResponse.CreateErrorResponse("Record not found!");
-                }
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-
+            var response = ApiResponse.CreateSuccessResponse(responseArray, "Retrieved Successfully!");
             return response;
         }
+        else
+        {
+            var response = ApiResponse.CreateErrorResponse("No menus found!");
+            return response;
+        }
+    }
+    catch (Exception ex)
+    {
+        var errorResponse = ApiResponse.CreateErrorResponse(ex.Message);
+        return errorResponse;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+public async Task<ResponseModel> GetContactDetails()
+{
+    try
+    {
+        var result = await _dbConnection.QueryAsync<object>("sel_contact_information", commandType: CommandType.StoredProcedure);
+        var responseArray = result.ToArray();
+
+        if (responseArray.Length > 0)
+        {
+            var response = ApiResponse.CreateSuccessResponse(responseArray, "Retrieved Successfully!");
+            return response;
+        }
+        else
+        {
+            var response = ApiResponse.CreateErrorResponse("No contact details found!");
+            return response;
+        }
+    }
+    catch (Exception ex)
+    {
+        var errorResponse = ApiResponse.CreateErrorResponse(ex.Message);
+        return errorResponse;
+    }
+}
