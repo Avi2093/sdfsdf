@@ -1,1 +1,27 @@
-.
+ public async Task<ResponseModel> GetRoleById(int ccmsid)
+        {
+            ResponseModel? response = null;
+            try
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@ccmsid", ccmsid, DbType.Int32);
+
+                var result = await _dbConnection.QueryAsync<object>("sel_role", parameters, commandType: CommandType.StoredProcedure);
+                var responseArray = result.ToArray();
+
+                if (responseArray.Length > 0)
+                {
+                    response = ApiResponse.CreateSuccessResponse(responseArray, "Retrieved Successfully!");
+                }
+                else
+                {
+                    response = ApiResponse.CreateErrorResponse("Record not found!");
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+            return response;
+        }
