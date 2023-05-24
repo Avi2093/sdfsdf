@@ -1,46 +1,16 @@
- public async Task<ResponseModel> DeleteTool(AllTools.DeleteToolRequest tool)
+  [HttpDelete]
+        public async Task<IActionResult> DeleteTool(int id)
         {
-            try
+            var deleteRequest = new AllTools.DeleteToolRequest { Id = id };
+            var result = await _ccmsRepository.DeleteTool(deleteRequest);
+
+            if (result.HttpStatusCode == 204)
+                return NoContent();
+
+            return Content(JsonConvert.SerializeObject(new
             {
-                // Check if the record exists and has active = 1
-                var existingRecord = await _dbConnection.QuerySingleOrDefaultAsync<int>(
-                    "SELECT COUNT(*) FROM dbo.ep_alltools WHERE Id = @id AND active = 1",
-                    new { id = tool.Id });
-
-                if (existingRecord == 0)
-                {
-                    var logEvent = new LogEventInfo(NLog.LogLevel.Info, null, "Record Not Found");
-                    logEvent.Properties["Source"] = "Dapper Repository - Delete tool method";
-                    var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
-                    logger.Log(logEvent);
-
-                    // Return a 204 No Content response
-                    var response = ApiResponse.CreateNoContentResponse("Record not found");
-                    response.HttpStatusCode = Convert.ToInt32(HttpStatusCode.NoContent);
-                    return response;
-                }
-
-
-
-                var parameters = new DynamicParameters();
-                parameters.Add("@action", "DELETE");
-                parameters.Add("@id", tool.Id);
-                parameters.Add("@name", "");
-                parameters.Add("@url", "");
-                parameters.Add("@active", 0); // Set the active column to 0
-
-                await _dbConnection.ExecuteAsync("commit_alltools", parameters, commandType: CommandType.StoredProcedure);
-
-                // Return a 200 OK response with success = true and a success message
-                var successResponse = ApiResponse.CreateSuccessResponse(responseArray: new[] { tool }, message: "Record deleted successfully!");
-                return successResponse;
-            }
-            catch (Exception ex)
-            {
-                var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, ex.Message);
-                logEvent.Properties["Source"] = "Dapper Repository - Deletetool() method";
-                var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
-                logger.Log(logEvent);
-                return ApiResponse.CreateErrorResponse(ex.Message);
-            }
+                success = result.Success,
+                message = result.Message,
+                data = result.Data
+            }, Formatting.Indented));
         }
