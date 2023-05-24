@@ -1,16 +1,1 @@
-  [HttpDelete]
-        public async Task<IActionResult> DeleteTool(int id)
-        {
-            var deleteRequest = new AllTools.DeleteToolRequest { Id = id };
-            var result = await _ccmsRepository.DeleteTool(deleteRequest);
-
-            if (result.HttpStatusCode == 204)
-                return NoContent();
-
-            return Content(JsonConvert.SerializeObject(new
-            {
-                success = result.Success,
-                message = result.Message,
-                data = result.Data
-            }, Formatting.Indented));
-        }
+.
