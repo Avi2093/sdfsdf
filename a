@@ -1,1 +1,52 @@
 .
+public static ResponseModel CreateNoContentResponse(string message = "")
+        {
+            // Return a response with success = false, message, and data as null
+            return new ResponseModel(null, message, false)
+            {
+                HttpStatusCode = HttpStatusCode.NoContent
+            };
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+         public async Task<ResponseModel> DeleteTool(AllTools.DeleteToolRequest tool)
+        {
+            try
+            {
+                // Check if the record exists and has active = 1
+                var existingRecord = await _dbConnection.QuerySingleOrDefaultAsync<int>(
+                    "SELECT COUNT(*) FROM dbo.ep_alltools WHERE Id = @id AND active = 1",
+                    new { id = tool.Id });
+
+                if (existingRecord == 0)
+                {
+                    // Return a 204 No Content response
+                    var response = ApiResponse.CreateNoContentResponse("Record not found");
+                    response.HttpStatusCode = HttpStatusCode.NoContent;
+                    return response;
+                }
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@action", "DELETE");
+                parameters.Add("@id", tool.Id);
+                parameters.Add("@name", "");
+                parameters.Add("@url", "");
+                parameters.Add("@active", 0); // Set the active column to 0
+
+                await _dbConnection.ExecuteAsync("commit_alltools", parameters, commandType: CommandType.StoredProcedure);
+
+                // Return a 200 OK response with success = true and a success message
+                var successResponse = ApiResponse.CreateSuccessResponse(responseArray: new[] { tool }, message: "Record deleted successfully!");
+                return new ResponseModel(successResponse.Data, successResponse.Message, successResponse.Success);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse.CreateErrorResponse(ex.Message);
+            }
+        }
