@@ -1,1 +1,163 @@
-.
+ public async Task<ResponseModel> UpdateTool(int id, AllTools.UpdateToolRequest tool)
+        {
+            ResponseModel? response = null;
+            try
+            {
+                tool.id = id;
+                var parameters = new DynamicParameters();
+                parameters.Add("@action", "update");
+                parameters.Add("@id", tool.id);
+                parameters.Add("@name", tool.name);
+                parameters.Add("@url", tool.url);
+                parameters.Add("@active", tool.active);
+                await _dbConnection.ExecuteAsync("commit_alltools", parameters, commandType: CommandType.StoredProcedure);
+
+                // Fetching the record from the database if it exists or not
+                var updatedTool = await _dbConnection.QuerySingleOrDefaultAsync<AllTools.UpdateToolRequest>(
+                    "SELECT * FROM dbo.ep_alltools WHERE Id = @id", new { id });
+
+                if (updatedTool != null)
+                {
+                    response = ApiResponse.CreateSuccessResponse(
+                        responseArray: new[] { tool },
+                        message: "Record updated successfully!");
+                }
+                else
+                {
+                    var result = ApiResponse.CreateNoContentResponse("Record not found");
+                    result.HttpStatusCode = Convert.ToInt32(HttpStatusCode.NoContent);
+
+                    // Logging the error with request body (only ID)
+                    var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, "Record not found. ID: " + id);
+                    logEvent.Properties["Source"] = "UpdateTool method-EmployeePortalAPI";
+                    var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+                    logger.Log(logEvent);
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, ex.Message + ". ID: " + id);
+                logEvent.Properties["Source"] = "UpdateTool method-EmployeePortalAPI";
+                var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+                logger.Log(logEvent);
+                throw;
+            }
+            finally
+            {
+                response ??= ApiResponse.CreateErrorResponse("something went wrong!");
+            }
+            return response;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        public async Task<ResponseModel> DeleteTool(int id)
+        {
+            try
+            {
+                // Check if the record exists and has active = 1
+                var existingRecord = await _dbConnection.QuerySingleOrDefaultAsync<int>(
+                    "SELECT COUNT(*) FROM dbo.ep_alltools WHERE Id = @id AND active = 1",
+                    new { id });
+
+                if (existingRecord == 0)
+                {
+                    var logEvent = new LogEventInfo(NLog.LogLevel.Info, null, "Record Not Found");
+                    logEvent.Properties["Source"] = "Dapper Repository - Delete tool method";
+                    var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+                    logger.Log(logEvent);
+
+                    // Return a 204 No Content response
+                    var response = ApiResponse.CreateNoContentResponse("Record not found");
+                    response.HttpStatusCode = Convert.ToInt32(HttpStatusCode.NoContent);
+                    return response;
+                }
+
+                var parameters = new DynamicParameters();
+                parameters.Add("@action", "DELETE");
+                parameters.Add("@id", id);
+                parameters.Add("@name", "");
+                parameters.Add("@url", "");
+                parameters.Add("@active", 0); 
+
+                await _dbConnection.ExecuteAsync("commit_alltools", parameters, commandType: CommandType.StoredProcedure);
+
+                // Return a 200 OK response with success = true and a success message
+                var successResponse = ApiResponse.CreateSuccessResponse(responseArray: new object[] { new { id = id.ToString() } }, message: "Record deleted successfully!");
+                var deleteEvent = new LogEventInfo(NLog.LogLevel.Info, null, $"Record deleted. ID: {id}");
+                deleteEvent.Properties["Source"] = "Dapper Repository - Deletetool() method";
+                var deletelog = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+                deletelog.Log(deleteEvent);
+                return successResponse;
+
+
+            }
+            catch (Exception ex)
+            {
+                var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, ex.Message);
+                logEvent.Properties["Source"] = "Dapper Repository - Deletetool() method";
+                var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+                logger.Log(logEvent);
+                return ApiResponse.CreateErrorResponse(ex.Message);
+            }
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        [HttpDelete]
+        public async Task<IActionResult> DeleteTool(int id)
+        {
+            var result = await _ccmsRepository.DeleteTool(id);
+
+            if (result.HttpStatusCode == 204)
+                return NoContent();
+
+            return Content(JsonConvert.SerializeObject(new
+            {
+                success = result.Success,
+                message = result.Message,
+                data = JValue.CreateNull() // Set data as null
+            }, Formatting.Indented));
+
+        }
