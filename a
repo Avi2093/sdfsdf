@@ -1,4 +1,112 @@
- public async Task<ResponseModel> UpdateTool(int id, AllTools.UpdateToolRequest tool)
+ public async Task<ResponseModel> GetAllTools()
+        {
+            try
+            {
+                var result = await _dbConnection.QueryAsync<object>("sel_getalltools", commandType: CommandType.StoredProcedure);
+
+                if (result.Any())
+                {
+                    var response = ApiResponse.CreateSuccessResponse(responseArray: result.ToArray(), message: "Retrieved Successfully!");
+                    return response;
+                }
+                else
+                {
+                    var errorResponse = ApiResponse.CreateErrorResponse("Record not found");
+                    errorResponse.HttpStatusCode = (int)HttpStatusCode.NoContent;
+
+                    // Logging the error 
+                    var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, "Record not found");
+                    logEvent.Properties["Source"] = "EmployeePortalAPI-AllToolsController/GetAllTools";
+                    var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+                    logger.Log(logEvent);
+
+                    return errorResponse;
+                }
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = ApiResponse.CreateErrorResponse(errorMessage: ex.Message);
+                var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, ex.Message);
+                logEvent.Properties["Source"] = "EmployeePortalAPI-AllToolsController/GetAllTools";
+                var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+                logger.Log(logEvent);
+                return errorResponse;
+            }
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+         public async Task<ResponseModel> InsertTool(AllTools.InsertToolRequest tool)
+        {
+            ResponseModel? response = null;
+            try
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@action", "INSERT");
+                parameters.Add("@name", tool.Name);
+                parameters.Add("@url", tool.Url);
+                parameters.Add("@active", tool.Active);
+                await _dbConnection.ExecuteAsync("commit_alltools", parameters, commandType: CommandType.StoredProcedure);
+                response = ApiResponse.CreateSuccessResponse(responseArray: new[] { tool }, message: "Inserted Successfully!");
+
+
+            }
+            catch (Exception ex)
+            {
+                var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, ex.Message + " RequestBody: " + JsonConvert.SerializeObject(tool));
+                logEvent.Properties["Source"] = "EmployeePortalAPI- AlltoolsController/InsertTool";
+                var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+                logger.Log(logEvent);
+                throw;
+            }
+
+            finally
+            {
+                response ??= ApiResponse.CreateErrorResponse("something went wrong!");
+            }
+            return response;
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+         public async Task<ResponseModel> UpdateTool(int id, AllTools.UpdateToolRequest tool)
         {
             ResponseModel? response = null;
             try
@@ -24,12 +132,12 @@
                 }
                 else
                 {
-                    var result = ApiResponse.CreateNoContentResponse("Record not found");
+                    var result = ApiResponse.CreateErrorResponse("Record not found");
                     result.HttpStatusCode = Convert.ToInt32(HttpStatusCode.NoContent);
 
                     // Logging the error with request body (only ID)
-                    var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, "Record not found. ID: " + id);
-                    logEvent.Properties["Source"] = "UpdateTool method-EmployeePortalAPI";
+                    var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, "Record not found");
+                    logEvent.Properties["Source"] = "EmployeePortalAPI-AllTools/UpdateTool";
                     var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
                     logger.Log(logEvent);
 
@@ -39,7 +147,7 @@
             catch (Exception ex)
             {
                 var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, ex.Message + ". ID: " + id);
-                logEvent.Properties["Source"] = "UpdateTool method-EmployeePortalAPI";
+                logEvent.Properties["Source"] = "EmployeePortalAPI-AllTools/UpdateTool";
                 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
                 logger.Log(logEvent);
                 throw;
@@ -50,37 +158,22 @@
             }
             return response;
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        public async Task<ResponseModel> DeleteTool(int id)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+         public async Task<ResponseModel> DeleteTool(int id)
         {
             try
             {
@@ -91,13 +184,13 @@
 
                 if (existingRecord == 0)
                 {
-                    var logEvent = new LogEventInfo(NLog.LogLevel.Info, null, "Record Not Found");
-                    logEvent.Properties["Source"] = "Dapper Repository - Delete tool method";
+                    var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, "Record Not Found");
+                    logEvent.Properties["Source"] = "EmployeePortal - AlltoolsController/DeleteTools";
                     var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
                     logger.Log(logEvent);
 
                     // Return a 204 No Content response
-                    var response = ApiResponse.CreateNoContentResponse("Record not found");
+                    var response = ApiResponse.CreateErrorResponse("Record not found");
                     response.HttpStatusCode = Convert.ToInt32(HttpStatusCode.NoContent);
                     return response;
                 }
@@ -113,8 +206,8 @@
 
                 // Return a 200 OK response with success = true and a success message
                 var successResponse = ApiResponse.CreateSuccessResponse(responseArray: new object[] { new { id = id.ToString() } }, message: "Record deleted successfully!");
-                var deleteEvent = new LogEventInfo(NLog.LogLevel.Info, null, $"Record deleted. ID: {id}");
-                deleteEvent.Properties["Source"] = "Dapper Repository - Deletetool() method";
+                var deleteEvent = new LogEventInfo(NLog.LogLevel.Info, null, $"Record deleted");
+                deleteEvent.Properties["Source"] = "EmployeePortal - AlltoolsController/DeleteTools";
                 var deletelog = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
                 deletelog.Log(deleteEvent);
                 return successResponse;
@@ -124,7 +217,7 @@
             catch (Exception ex)
             {
                 var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, ex.Message);
-                logEvent.Properties["Source"] = "Dapper Repository - Deletetool() method";
+                logEvent.Properties["Source"] = "EmployeePortal - AlltoolsController/DeleteTools";
                 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
                 logger.Log(logEvent);
                 return ApiResponse.CreateErrorResponse(ex.Message);
@@ -145,7 +238,71 @@
         
         
         
-        [HttpDelete]
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        [HttpGet]
+        public async Task<IActionResult> GetAllTools()
+        {
+            var tools = await _ccmsRepository.GetAllTools();
+
+            if (tools.HttpStatusCode == 204)
+                return NoContent();
+
+            return Ok(JsonConvert.SerializeObject(tools, Formatting.Indented));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> InsertTool(AllTools.InsertToolRequest tool)
+        {
+            var result = await _ccmsRepository.InsertTool(tool);
+            if (result.HttpStatusCode == 204)
+                return NoContent();
+
+            return Content(JsonConvert.SerializeObject(new
+            {
+                success = result.Success,
+                message = result.Message,
+                data = JValue.CreateNull() 
+            }, Formatting.Indented));
+
+        }
+
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> UpdateTool(int id, AllTools.UpdateToolRequest tool)
+        {
+            var result = await _ccmsRepository.UpdateTool(id, tool);
+
+            if (result.HttpStatusCode == 204)
+                return NoContent();
+
+            return Content(JsonConvert.SerializeObject(new
+            {
+                success = result.Success,
+                message = result.Message,
+                //    data = result.Data
+                //}, Formatting.Indented));
+                data = JValue.CreateNull()
+            }, Formatting.Indented));
+        }
+
+
+
+
+
+
+
+
+
+
+        [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteTool(int id)
         {
             var result = await _ccmsRepository.DeleteTool(id);
