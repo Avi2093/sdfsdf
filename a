@@ -1,19 +1,24 @@
-[HttpPost]
-public IActionResult GetToken(User user)
-{
-    if (!string.IsNullOrWhiteSpace(user.ntId))
-    {
-        var token = GetJwtToken(user.ntId);
-        var response = new
-        {
-            success = true,
-            message = "Token generated successfully",
-            data = token
-        };
+public async Task<IActionResult> Get(int id) =>
+    Content(
+        JsonConvert.SerializeObject(await _epRepository.GetFavoriteTool(id), Formatting.Indented),
+        "application/json"
+    );
 
-        var jsonResponse = JsonConvert.SerializeObject(response);
-        return Content(jsonResponse, "application/json");
-    }
 
-    return BadRequest();
-}
+
+
+
+public async Task<IActionResult> Delete(int id) =>
+    Content(
+        JsonConvert.SerializeObject(await _epRepository.DeleteFavoriteTool(id), Formatting.Indented),
+        "application/json"
+    );
+
+
+
+[HttpPut("{id}")]
+public async Task<IActionResult> Put(int id, [FromBody] UpdateFavoriteToolRequest toolRequest) =>
+    Content(
+        JsonConvert.SerializeObject(await _epRepository.UpdateFavoriteTool(id, toolRequest), Formatting.Indented),
+        "application/json"
+    );
