@@ -1,1 +1,19 @@
+[HttpPost]
+public IActionResult GetToken(User user)
+{
+    if (!string.IsNullOrWhiteSpace(user.ntId))
+    {
+        var token = GetJwtToken(user.ntId);
+        var response = new
+        {
+            success = true,
+            message = "Token generated successfully",
+            data = token
+        };
 
+        var jsonResponse = JsonConvert.SerializeObject(response);
+        return Content(jsonResponse, "application/json");
+    }
+
+    return BadRequest();
+}
