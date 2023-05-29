@@ -1,10 +1,11 @@
 [HttpPost]
-public async Task<IActionResult> InsertTool(AllTools.InsertToolRequest tool) =>
+public async Task<IActionResult> Post([FromBody] AddFavoriteToolRequest toolRequest) =>
     Content(
         JsonConvert.SerializeObject(new
         {
-            success = (await _ccmsRepository.InsertTool(tool)).Success,
-            message = (await _ccmsRepository.InsertTool(tool)).Message,
+            success = (await _epRepository.AddFavoriteTool(toolRequest)).Success,
+            message = (await _epRepository.AddFavoriteTool(toolRequest)).Message,
             data = JValue.CreateNull()
-        }, Formatting.Indented)
+        }, Formatting.Indented),
+        "application/json"
     );
