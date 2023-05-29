@@ -1,10 +1,8 @@
 [HttpPut("{id}")]
 public async Task<IActionResult> Put(int id, [FromBody] UpdateFavoriteToolRequest toolRequest) =>
     Content(
-        JsonConvert.SerializeObject(new
-        {
-            success = (await _epRepository.UpdateFavoriteTool(id, toolRequest)).Success,
-            message = (await _epRepository.UpdateFavoriteTool(id, toolRequest)).Message,
-            data = JValue.CreateNull()
-        }, Formatting.Indented)
+        JsonConvert.SerializeObject(
+            await _epRepository.UpdateFavoriteTool(id, toolRequest),
+            Formatting.Indented
+        )
     );
