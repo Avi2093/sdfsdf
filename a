@@ -1,2 +1,26 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+protected void Application_PreSendRequestHeaders()
+        {
+            Response.Headers.Remove("Server");
+            Response.Headers.Remove("X-AspNet-Version");
+            Response.Headers.Remove("X-AspNetMvc-Version");
+        }
+
+
+
+
+ <system.webServer>
+  
+    <security>
+      <requestFiltering removeServerHeader="true" />
+    </security>
+      
+    <httpProtocol allowKeepAlive="true">
+      <customHeaders>
+        <clear/>
+        <add name="X-Frame-Options" value="SAMEORIGIN"/>
+        <add name="Content-Security-Policy" value="frame-ancestors 'self';"/>
+        <remove name="X-Powered-By" />
+      </customHeaders>
+    </httpProtocol>
+  </system.webServer>
 
