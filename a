@@ -1,1 +1,16 @@
+string philippineTimeZoneId = "Asia/Manila";
+TimeZoneInfo philippineTimeZone = TimeZoneInfo.GetSystemTimeZones()
+    .FirstOrDefault(tz => tz.Id.Equals(philippineTimeZoneId, StringComparison.OrdinalIgnoreCase));
+
+if (philippineTimeZone != null)
+{
+    user.TimeZoneId = philippineTimeZone.Id;
+}
+else
+{
+    // Handle the situation when the Philippine timezone is not available or the identifier is invalid
+    // You can choose to assign a fallback timezone or handle the situation accordingly
+    // For example:
+    // user.TimeZoneId = TimeZoneInfo.Local.Id;
+}
 
