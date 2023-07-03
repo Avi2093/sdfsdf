@@ -1,7 +1,7 @@
 @if (field.AdditionalDataId == "PHNU")
-{
-    <div class="col-sm-6">
-        @Html.TextBoxFor(x => field.Value, new { @class = "form-control", @value = "Your hardcoded phone number" })
-        @Html.ValidationMessageFor(x => field.Value)
-    </div>
-}
+                        {
+                            <div class="col-sm-6">
+                                @Html.TextBoxFor(x => field.Value, new { @class = "form-control", @value = "Your hardcoded phone number" })
+                                @Html.ValidationMessageFor(x => field.Value)
+                            </div>
+                        }
