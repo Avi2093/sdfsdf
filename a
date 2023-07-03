@@ -1,2 +1,7 @@
-<!-- Remove the data-val-required attribute from the input element -->
-                    <input class="form-control" data-val="true" data-val-length="The field must be a string with a maximum length of 30." data-val-length-max="30" data-val-regex="Invalid phone number format." data-val-regex-pattern="^\+?[0-9]*$" id="PhoneField" name="PhoneField" type="text" value="">
+@if (field.AdditionalDataId == "PHNU")
+{
+    <div class="col-sm-6">
+        @Html.TextBoxFor(x => field.Value, new { @class = "form-control", @value = "Your hardcoded phone number" })
+        @Html.ValidationMessageFor(x => field.Value)
+    </div>
+}
