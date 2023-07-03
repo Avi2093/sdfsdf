@@ -1,9 +1,2 @@
-string philippineTimeZoneId = "Asia/Manila";
-TimeZoneInfo philippineTimeZone = TimeZoneInfo.CreateCustomTimeZone(
-    philippineTimeZoneId,
-    TimeSpan.FromHours(8),  // Adjust the offset according to the Philippine timezone
-    "Philippine Standard Time",  // Display name for the timezone
-    "Philippine Standard Time"   // Standard name for the timezone
-);
-
-user.TimeZoneId = philippineTimeZone.Id;
+<!-- Remove the data-val-required attribute from the input element -->
+                    <input class="form-control" data-val="true" data-val-length="The field must be a string with a maximum length of 30." data-val-length-max="30" data-val-regex="Invalid phone number format." data-val-regex-pattern="^\+?[0-9]*$" id="PhoneField" name="PhoneField" type="text" value="">
