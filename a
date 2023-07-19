@@ -1,101 +1,231 @@
-using Microsoft.Extensions.Options;
-using System.Security.Cryptography;
-using System.Text;
+export interface ApiResponse {
+    success: boolean;
+    message: string;
+    data?: string; // Optional as it may not exist in all responses
+  }
 
-namespace EmployeePortal.API.Helpers
-{
-    public class EncryptionMiddleware
-    {
-        private readonly RequestDelegate _next;
-        //private readonly AppSettings _appSettings;
-        public EncryptionMiddleware(RequestDelegate next)
-        {
-            _next = next;
-          //  _appSettings = appSettings.Value;
-        }
-        // Whenever we call any action method then call this before call the action method
-        public async Task Invoke(HttpContext httpContext)
-        {
-            List<string> excludeURL = GetExcludeURLList();
-            if (!excludeURL.Contains(httpContext.Request.Path.Value))
-            {
-                httpContext.Request.Body = DecryptStream(httpContext.Request.Body);
-                if (httpContext.Request.QueryString.HasValue)
-                {
-                    string decryptedString = DecryptString(httpContext.Request.QueryString.Value.Substring(1));
-                    httpContext.Request.QueryString = new QueryString($"?{decryptedString}");
+
+
+
+import { Injectable } from '@angular/core';
+import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpHeaders } from '@angular/common/http';
+import { EncryptDecryptService } from './encryption.service';
+import { Observable } from 'rxjs' //'rxjs/Observable';
+//import { environment } from 'src/environments/environment';
+
+@Injectable()
+export class EncryptDecryptAuthInterceptor implements HttpInterceptor {
+    constructor(private encryptDecryptService: EncryptDecryptService, ) {}
+    //let  baseUrl = "https://localhost:7094";
+    // If you want to some exclude api call from Encryption then add here like that.
+    // environment.basUrl is your API URL
+    ExcludeURLList = [
+       // baseUrl + "/api/employees",
+       // environment.baseUrl + "/api/Users/UploadProfilePicture",
+       // environment.baseUrl + "/api/Common/downloadattachedfile"
+    ];
+    intercept(req: HttpRequest <any> , next: HttpHandler): Observable <HttpEvent<any>> {
+        debugger;
+        /*  req={body :null,
+        } */
+        let exludeFound = this.ExcludeURLList.filter(element => {
+            return req.url.includes(element)
+        });
+        // We have Encrypt the GET and POST call before pass payload to API
+        if (!(exludeFound && exludeFound.length > 0)) {
+            if (req.method == "GET") {
+                if (req.url.indexOf("?") > 0) {
+                    let encriptURL = req.url.substr(0, req.url.indexOf("?") + 1) + this.encryptDecryptService.encryptUsingAES256(req.url.substr(req.url.indexOf("?") + 1, req.url.length));
+                    const cloneReq = req.clone({
+                        url: encriptURL
+                    });
+                    return next.handle(cloneReq);
                 }
-            }
-            await _next(httpContext);
-        }
-        // This function is not needed but if we want anything to encrypt then we can use
-        private CryptoStream EncryptStream(Stream responseStream)
-        {
-            Aes aes = GetEncryptionAlgorithm();
-            ToBase64Transform base64Transform = new ToBase64Transform();
-            CryptoStream base64EncodedStream = new CryptoStream(responseStream, base64Transform, CryptoStreamMode.Write);
-            ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-            CryptoStream cryptoStream = new CryptoStream(base64EncodedStream, encryptor, CryptoStreamMode.Write);
-            return cryptoStream;
-        }
-        static byte[] Encrypt(string plainText)
-        {
-            byte[] encrypted;
-            using (AesManaged aes = new AesManaged())
-            {
-                ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    using (CryptoStream cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
-                    {
-                        using (StreamWriter sw = new StreamWriter(cs))
-                            sw.Write(plainText);
-                        encrypted = ms.ToArray();
-                    }
+                return next.handle(req);
+            } else if (req.method == "POST") {
+                debugger;
+                if (req.body || req.body.length > 0) {
+                    const cloneReq = req.clone({
+                        body: this.encryptDecryptService.encryptUsingAES256(req.body)
+                    });
+                    return next.handle(cloneReq);
                 }
+                let data = req.body as FormData;
+                return next.handle(req);
             }
-            return encrypted;
         }
-        // This are main functions that we decrypt the payload and  parameter which we pass from the angular service.
-        private Stream DecryptStream(Stream cipherStream)
-        {
-            Aes aes = GetEncryptionAlgorithm();
-            FromBase64Transform base64Transform = new FromBase64Transform(FromBase64TransformMode.IgnoreWhiteSpaces);
-            CryptoStream base64DecodedStream = new CryptoStream(cipherStream, base64Transform, CryptoStreamMode.Read);
-            ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-            CryptoStream decryptedStream = new CryptoStream(base64DecodedStream, decryptor, CryptoStreamMode.Read);
-            return decryptedStream;
-        }
-        private string DecryptString(string cipherText)
-        {
-            Aes aes = GetEncryptionAlgorithm();
-            byte[] buffer = Convert.FromBase64String(cipherText);
-            MemoryStream memoryStream = new MemoryStream(buffer);
-            ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-            CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read);
-            StreamReader streamReader = new StreamReader(cryptoStream);
-            return streamReader.ReadToEnd();
-        }
-        // We have to use same KEY and IV as we use for encryption in angular side.
-        // _appSettings.EncryptKey= 1203199320052021
-        // _appSettings.EncryptIV = 1203199320052021
-        private Aes GetEncryptionAlgorithm()
-        {
-            Aes aes = Aes.Create();
-            var secret_key = Encoding.UTF8.GetBytes("1203199320052021");
-            var initialization_vector = Encoding.UTF8.GetBytes("1203199320052021");
-            aes.Key = secret_key;
-            aes.IV = initialization_vector;
-            return aes;
-        }
-        // This are excluded URL from encrypt- decrypt that already we added in angular side and as well as in ASP.NET CORE side.
-        private List<string> GetExcludeURLList()
-        {
-            List<string> excludeURL = new List<string>();
-            excludeURL.Add("/api/Common/commonFileuploaddata");
-            excludeURL.Add("/api/Users/UploadProfilePicture");
-            excludeURL.Add("/api/Common/downloadattachedfile");
-            return excludeURL;
-        }
+        return next.handle(req);
     }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import { Injectable } from '@angular/core';
+import * as CryptoJS from 'crypto-js';
+//import { environment } from 'src/environments/environment';
+
+@Injectable({
+    providedIn: 'root'
+})
+export class EncryptDecryptService {
+    private key = CryptoJS.enc.Utf8.parse('1203199320052021');
+    private iv = CryptoJS.enc.Utf8.parse('1203199320052021');
+  //  private key = CryptoJS.enc.Utf8.parse(environment.EncryptKey);
+   // private iv = CryptoJS.enc.Utf8.parse(environment.EncryptIV);
+    constructor() {}
+    // Methods for the encrypt and decrypt Using AES
+    encryptUsingAES256(text: string): any {
+
+        var encrypted = CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(text), this.key, {
+            keySize: 128 / 8,
+            iv: this.iv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        });
+        return encrypted.toString();
+    }
+    decryptUsingAES256(decString: string) {
+      //debugger;
+      var decrypted = CryptoJS.AES.decrypt(decString, this.key, {
+        keySize: 128 / 8,
+        iv: this.iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7
+    });
+    
+        return decrypted.toString(CryptoJS.enc.Utf8);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { ResponseService } from './services/response.service';
+import { HttpHeaders } from '@angular/common/http';
+//import { EncryptDecryptService } from './services/encryption.service';
+import { EncryptDecryptService } from './services/encryption.service';
+import { ApiResponse } from './api-response';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
+})
+export class AppComponent {
+  title = 'avi encryptiondescription-app';
+  data: any;
+  
+  constructor(private http: HttpClient, private responseService: ResponseService,private encryptDecryptService: EncryptDecryptService) {}
+
+  getapi(): void {
+    this.http.get<ApiResponse>('https://localhost:7094/api/employees')
+      .subscribe(
+        (response) => {
+          if (response.success && response.data) {
+            // Decrypt the data field
+            const decryptedData = this.encryptDecryptService.decryptUsingAES256(response.data!);
+  
+            const parsedDecryptedData = JSON.parse(decryptedData);
+            console.log("Parsed Decrypted Data:", parsedDecryptedData);
+  
+            // Pass the intercepted and decrypted data to the service
+            this.responseService.handleResponse(decryptedData);
+  
+            // Process the data as needed
+          } else {
+            console.error('API error:', response.message);
+            // Handle any API errors or missing data fields
+          }
+        },
+        error => {
+          console.error('API error:', error);
+          // Handle network or other API-related errors
+        }
+      );
+  }
+  
+  postapi() {
+    const body = {
+      "Name": "string",
+      "Url": "string",
+      "Active": true
+    };
+  
+    console.log('Start post data:');
+  
+    // Encrypt the request body using AES-256 encryption
+    const encryptedBody = this.encryptDecryptService.encryptUsingAES256(JSON.stringify(body));
+  
+    const headers = new HttpHeaders()
+      .set('Content-Type', 'application/json')
+      .set('Accept', '*/*')
+      .set('Method', 'POST');
+  
+    this.http.post<any>('https://localhost:7094/api/v1/alltools', encryptedBody, { headers })
+      .subscribe(
+        (response) => {
+  
+          console.log(response);
+          debugger;
+          
+          // Decrypt the response data received from the API
+          const decryptedData = this.encryptDecryptService.decryptUsingAES256(response.data!);
+          
+          console.log("Decrypted Data:", decryptedData);
+  
+          // Additional debug logs and processing of the decrypted data
+  
+        },
+        error => {
+          console.error('API error:', error);
+          // Handle network or other API-related errors
+        }
+      );
+  
+    console.log('End post data:');
+  }
 }
