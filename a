@@ -1,6 +1,24 @@
-<filters>
-                <!-- Only log when there's an exception or HTTP status code is 401 or 204 -->
-                <when condition="'${exception}' != '' 
-                                  or '${aspnet-request-status-code}' == '401'
-                                  or '${aspnet-request-status-code}' == '204'" />
-            </filters>
+public async Task<IActionResult> GetToken([FromBody] AuthCredentials authCredentials)
+{
+    //authCredentials.ntId = _encryptDecryptHandler.DecryptUsingAES256CBC(authCredentials.ntId);
+    if (!string.IsNullOrWhiteSpace(authCredentials.ntId))
+    {
+        var parameters = new DynamicParameters();
+        parameters.Add("@IDtype", "upnid");
+        parameters.Add("@ccmsid", authCredentials.ntId);
+        var result = await _dbConnection.QueryAsync("exec sel_alltools", parameters, commandType: CommandType.StoredProcedure);
+
+        if (result.Any())
+        {
+            var response = GetJwtToken(authCredentials.ntId);
+            return Ok(new
+            {
+                success = response.Success,
+                message = response.Message,
+                data = string.IsNullOrEmpty(response.Data) ? null : JsonConvert.DeserializeObject<ResponseData.GetToken>(response.Data)
+            });
+        }
+    }
+
+    return BadRequest();
+}
