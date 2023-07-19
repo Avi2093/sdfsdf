@@ -1,24 +1,50 @@
-public async Task<IActionResult> GetToken([FromBody] AuthCredentials authCredentials)
-{
-    //authCredentials.ntId = _encryptDecryptHandler.DecryptUsingAES256CBC(authCredentials.ntId);
-    if (!string.IsNullOrWhiteSpace(authCredentials.ntId))
-    {
-        var parameters = new DynamicParameters();
-        parameters.Add("@IDtype", "upnid");
-        parameters.Add("@ccmsid", authCredentials.ntId);
-        var result = await _dbConnection.QueryAsync("exec sel_alltools", parameters, commandType: CommandType.StoredProcedure);
+<layout type='JsonLayout'>
+				
+				${event-properties:AspNetRequestStatusCode}
+			</layout>
 
-        if (result.Any())
+		</target>
+	</targets>
+
+	<rules>
+		<logger name="*" minlevel="Error" writeTo="dbTarget" /> 
+		<logger name="*" minlevel="Info">
+			<filters>
+				<!-- Only log when there's an exception or HTTP status code is 401 or 204 -->
+				<when condition="'${exception}' != '' 
+                                  or '${event-properties:AspNetRequestStatusCode}' == '401'
+                                  or '${event-properties:AspNetRequestStatusCode}' == '204'" />
+			</filters>
+			<writeTo targets="dbTarget" />
+		</logger> 
+	</rules>
+
+
+
+
+
+
+
+
+
+
+ private static async Task HandleExceptions(HttpContext context, Exception ex)
         {
-            var response = GetJwtToken(authCredentials.ntId);
-            return Ok(new
-            {
-                success = response.Success,
-                message = response.Message,
-                data = string.IsNullOrEmpty(response.Data) ? null : JsonConvert.DeserializeObject<ResponseData.GetToken>(response.Data)
-            });
-        }
-    }
+            var controllerName = context.Request.Path.Value;
+            var methodName = context.Request.Method;
+            int statusCode = context.Response.StatusCode;
 
-    return BadRequest();
-}
+            using (NLog.ScopeContext.PushProperty("AspNetRequestStatusCode", statusCode.ToString()))
+            {
+                var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+                var loggedUser = context.User.Identity?.Name;
+                var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, $"[{controllerName}.{methodName}] An error occurred while processing your request.  User:{loggedUser}");
+                logEvent.Properties["Source"] = "Your Source Value";
+                logger.Log(logEvent);
+
+
+            }
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            await context.Response.WriteAsJsonAsync(new { error = "An error occurred while processing your request." });
+        }
