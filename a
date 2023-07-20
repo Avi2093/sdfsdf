@@ -1,2 +1,19 @@
-context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
-                context.Response.Headers.Add("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+if (existingtool != null && (tool.name == existingtool.name || tool.url == existingtool.url))
+{
+    string errorMessage;
+    if (tool.name == existingtool.name && tool.url == existingtool.url)
+    {
+        errorMessage = "Tool url and name should be different in order to update.";
+    }
+    else if (tool.name == existingtool.name)
+    {
+        errorMessage = "Tool name should be different in order to update.";
+    }
+    else
+    {
+        errorMessage = "Tool url should be different in order to update.";
+    }
+
+    response = ApiResponse.CreateErrorResponse(errorMessage);
+    response.HttpStatusCode = (int)HttpStatusCode.Conflict;
+}
