@@ -1,50 +1,48 @@
-<layout type='JsonLayout'>
-				
-				${event-properties:AspNetRequestStatusCode}
-			</layout>
-
-		</target>
-	</targets>
-
-	<rules>
-		<logger name="*" minlevel="Error" writeTo="dbTarget" /> 
-		<logger name="*" minlevel="Info">
-			<filters>
-				<!-- Only log when there's an exception or HTTP status code is 401 or 204 -->
-				<when condition="'${exception}' != '' 
-                                  or '${event-properties:AspNetRequestStatusCode}' == '401'
-                                  or '${event-properties:AspNetRequestStatusCode}' == '204'" />
-			</filters>
-			<writeTo targets="dbTarget" />
-		</logger> 
-	</rules>
-
-
-
-
-
-
-
-
-
-
- private static async Task HandleExceptions(HttpContext context, Exception ex)
+ public async Task<ResponseModel> InsertTool(AllTools.InsertToolRequest tool)
         {
-            var controllerName = context.Request.Path.Value;
-            var methodName = context.Request.Method;
-            int statusCode = context.Response.StatusCode;
-
-            using (NLog.ScopeContext.PushProperty("AspNetRequestStatusCode", statusCode.ToString()))
+            ResponseModel? response = null;
+            try
             {
-                var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
-                var loggedUser = context.User.Identity?.Name;
-                var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, $"[{controllerName}.{methodName}] An error occurred while processing your request.  User:{loggedUser}");
-                logEvent.Properties["Source"] = "Your Source Value";
-                logger.Log(logEvent);
+                var parameters = new DynamicParameters();
+                parameters.Add("@id", null); // Change action to perform a duplicate check
+                parameters.Add("@name", tool.Name);
+                parameters.Add("@url", tool.Url);
 
+                // Execute the duplicate check stored procedure
+                var duplicateCheckResult = await _dbConnection.QueryFirstOrDefaultAsync<int>("sel_alltools", parameters, commandType: CommandType.StoredProcedure);
 
+                if (duplicateCheckResult > 0)
+                {
+                    response = ApiResponse.CreateErrorResponse("Duplicate Data.");
+                    response.HttpStatusCode = Convert.ToInt32(HttpStatusCode.Conflict);
+
+                }
+                else
+                {
+                    // No duplicate found, proceed with the insertion
+                     parameters = new DynamicParameters(); 
+                    parameters.Add("@action", "INSERT");
+                    parameters.Add("@name", tool.Name);
+                    parameters.Add("@url", tool.Url);
+                    parameters.Add("@active", tool.Active);
+                    parameters.Add("@createdBy", tool.createdBy);
+
+                    await _dbConnection.ExecuteAsync("commit_alltools", parameters, commandType: CommandType.StoredProcedure);
+
+                    response = ApiResponse.CreateSuccessResponse(message: "Inserted Successfully!");
+                }
             }
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            await context.Response.WriteAsJsonAsync(new { error = "An error occurred while processing your request." });
+            catch (Exception ex)
+            {
+                var logEvent = new LogEventInfo(NLog.LogLevel.Error, null, ex.Message + " RequestBody: " + JsonConvert.SerializeObject(tool));
+                logEvent.Properties["Source"] = "EmployeePortalAPI-AlltoolsController/InsertTool";
+                var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+                logger.Log(logEvent);
+                throw;
+            }
+            finally
+            {
+                response ??= ApiResponse.CreateErrorResponse("Something went wrong!");
+            }
+            return response;
         }
