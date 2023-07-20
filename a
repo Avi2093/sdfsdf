@@ -1,1 +1,2 @@
-
+context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+                context.Response.Headers.Add("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
