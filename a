@@ -1,2 +1,27 @@
 
-.
+            // Check for blacklisted tokens and block the request if necessary
+            string token = context.Request.Headers["Authorization"];
+            if (!string.IsNullOrEmpty(token) && TokenBlacklist.BlacklistedTokens.Contains(token))
+            {
+                context.Response.ContentType = "application/json";
+                context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+
+                var errorResponse = new
+                {
+                    message = "Unauthorized: Blacklisted token detected.",
+                    error = "Invalid token"
+                };
+
+                var jsonErrorResponse = JsonSerializer.Serialize(errorResponse);
+                await context.Response.WriteAsync(jsonErrorResponse);
+                return;
+            }
+
+            try
+            {
+                await _next(context);
+            }
+            catch (Exception ex)
+            {
+                await HandleExceptions(context, ex);
+            }
