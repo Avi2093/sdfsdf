@@ -1,38 +1,42 @@
-// Add a claim for the issue time.
-            new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
-
-
-
-
-
-
-
-
-
-
-
-
-
 private void AttachUserToContext(HttpContext context, string token)
 {
-   try
-   {
-       ...
-       SecurityToken validatedToken;
+    try
+    {
+        var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AzureADConfig:ClientSecret"]));
+        var validationParameters = new TokenValidationParameters()
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = secretKey,
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ClockSkew = TimeSpan.Zero // To ensure exact match with expiry datetime.
+        };
 
-       JwtSecurityTokenHandler handler=new JwtSecurityTokenHandler();
+        SecurityToken validatedToken;
+        
+        JwtSecurityTokenHandler handler=new JwtSecurityTokenHandler();
        
-       handler.ValidateToken(token, validationParameters,out validated Token);
-      
+       handler.ValidateToken(token,validationParameters,out validatedToken);
+
+       // Cast the SecurityToken to a JwtSecurityToken
+       var jwtValidated=(JwtSecurityToken)validated Token;
+
       // Calculate expiration moment based on 'iat' claim 
-      long iatRaw=long.Parse(validated Token.Claims.First(c => c.Type == "iat").Value);
+      long iatRaw=long.Parse(jwtValidated.Claims.First(c => c.Type == "iat").Value);
       DateTimeOffset dtIssued=DateTimeOffset.FromUnixTimeSeconds(iatRaw).UtcDateTime;
    
       // Check whether current UTC time exceeds calculated moment by more than 15 min 
       if (dtIssued.AddMinutes(15) < DateTime.UtcNow) 
-          throw Exception("Expired Token");
-          
-        ...
+          throw new Exception("Expired Token");
+
+      
+      // Extract user claims or set an entire User object as needed
+       context.Items["user"] =
+           jwtValidated.Claims.ToDictionary(x => x.Type, x => x.Value); 
+
+    }
+    catch (Exception e)
+    {
+         throw new Exception("Invalid Token"); // Or any other appropriate response here.
+     }
 }
-catch(Exception e)
-{...}
