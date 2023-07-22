@@ -1,27 +1,98 @@
+using System;
+using System.Net;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
+using Microsoft.AspNetCore.Mvc;
+using EmployeePortal.API.Extensions;
+using System.Text.Json;
+using NLog.Web;
+using NLog;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
-            // Check for blacklisted tokens and block the request if necessary
-            string token = context.Request.Headers["Authorization"];
-            if (!string.IsNullOrEmpty(token) && TokenBlacklist.BlacklistedTokens.Contains(token))
-            {
-                context.Response.ContentType = "application/json";
-                context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+namespace EmployeePortal.API.Middleware
+{
+    public class ExceptionMiddleware
+    {
+        private readonly RequestDelegate _next;
+        private static System.Timers.Timer? internalLogcleaner;
 
-                var errorResponse = new
-                {
-                    message = "Unauthorized: Blacklisted token detected.",
-                    error = "Invalid token"
-                };
+        public ExceptionMiddleware(RequestDelegate next)
+        {
+            this._next = next;
+        }
 
-                var jsonErrorResponse = JsonSerializer.Serialize(errorResponse);
-                await context.Response.WriteAsync(jsonErrorResponse);
-                return;
-            }
+        public async Task Invoke(HttpContext context)
+        {
+            //av code
+            var accessToken = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
+            if (accessToken != null)
+                AttachUserToContext(context, accessToken);
+
+
+            //av ends
             try
             {
-                await _next(context);
+                await this._next(context);
             }
             catch (Exception ex)
             {
                 await HandleExceptions(context, ex);
             }
+
+            finally
+            {
+                // Below code is to delte internalLog File in 1 week:604800sec
+                internalLogcleaner = new System.Timers.Timer(604800);
+                if (File.Exists("ep-internalLog.txt"))
+                {
+                    internalLogcleaner.Elapsed += (s, e) => File.Delete("ep-internalLog.txt");
+                }
+                internalLogcleaner.Enabled= true;
+            }
+        }
+
+        private static async Task HandleExceptions(HttpContext context, Exception ex)
+        {
+            var controllerName = context.Request.Path.Value;
+            var methodName = context.Request.Method;
+
+            var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+            var loggeduser = context.User.Identity?.Name;
+
+            logger.Error(ex, $"[{controllerName}.{methodName}] An error occurred while processing your request.   User:{loggeduser}");
+
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            await context.Response.WriteAsJsonAsync(new { error = "An error occurred while processing your request." });
+        }
+
+
+        private void AttachUserToContext(HttpContext context, string token)
+        {
+            try
+            {
+                var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["AzureADConfig:ClientSecret"]));
+                var validationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = secretKey,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero // To ensure exact match with expiry datetime.
+                };
+
+                SecurityToken validatedToken;
+
+                new JwtSecurityTokenHandler().ValidateToken(token, validationParameters, out validatedToken);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Invalid Token"); // Or any other appropriate response here.
+            }
+        }
+    }
+}
