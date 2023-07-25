@@ -1,1 +1,9 @@
+ var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
+    if (token != null)
+    {
+      var handler = new JwtSecurityTokenHandler();
+      var jsonToken = handler.ReadToken(token);
+      var tokenS = jsonToken as JwtSecurityToken;
+
+      var role = tokenS.Claims.First(claim => claim.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role").Value;
