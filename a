@@ -1,5 +1,14 @@
-var claims = new[]{
-  new Claim(ClaimTypes.Role, role)  
-};
+string role; 
 
-context.User = new ClaimsPrincipal(new ClaimsIdentity(claims));
+if (roleValue == 1) 
+{
+  role = "Admin";
+}
+else if (roleValue == 0)  
+{
+  role = "User";
+}
+
+var claims = new[]{
+  new Claim(ClaimTypes.Role, role)
+};
