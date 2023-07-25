@@ -1,14 +1,28 @@
-string role; 
-
-if (roleValue == 1) 
+if (token != null)
 {
-  role = "Admin";
-}
-else if (roleValue == 0)  
-{
-  role = "User";
-}
+    var handler = new JwtSecurityTokenHandler();
+    var jsonToken = handler.ReadToken(token);
+    var tokenS = jsonToken as JwtSecurityToken;
+    int rolevalue = int.Parse(tokenS.Claims.First(claim => claim.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role").Value);
 
-var claims = new[]{
-  new Claim(ClaimTypes.Role, role)
-};
+    string role;
+    if (rolevalue == 1)
+    {
+        role = "Admin";
+    }
+    else if (rolevalue == 0)
+    {
+        role = "User";
+    }
+    else
+    {
+        role = "Unknown";
+    }
+
+    var claims = new[]
+    {
+        new Claim(ClaimTypes.Role, role)
+    };
+
+    context.User = new ClaimsPrincipal(new ClaimsIdentity(claims));
+}
