@@ -1,1 +1,1 @@
-
+  var roleClaim = User.FindFirst(ClaimTypes.Role).Value;
