@@ -1,1 +1,2 @@
-ADUserManager.Helpers.UserInfo.LoggedInUserInfo = userInformation;
+string authority = "https://login.microsoftonline.com/tenantid";
+string resource = "https://graph.microsoft.com";
