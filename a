@@ -1,46 +1,5 @@
-public class AccountController : Controller
-{
-  public async Task<ActionResult> SignIn()
-  {
-    var authContext = new AuthenticationContext(authSettings.Authority); 
-    var credential = new ClientCredential(authSettings.ClientId, authSettings.ClientSecret);
-
-    var result = await authContext.AcquireTokenSilentAsync(authSettings.AzureAdGraphResourceId, credential, new UserIdentifier(userObjectID, UserIdentifierType.UniqueId));
-
-    if (result == null)
-    {
-      // No token, redirect to Azure AD sign in
-      return new ChallengeResult(authSettings.Authority, new AuthenticationProperties() { RedirectUri = urlAfterLogin });
-    }
-    else
-    {
-      // Token retrieved, sign in user
-      // ...
-    }
-  }
-}
-
-
-
-
-
-
-
-
-
-
-
-public class AccountController : Controller 
-{
-  public ActionResult SignOut()
-  {
-    // Clear local authentication cookie
-    Request.GetOwinContext().Authentication.SignOut();
-    
-    // Redirect to Azure AD signout endpoint
-    var logoutRequest = HttpContext.GetOwinContext().Get<string>("owin.RequestPath");
-    var logoutUri = $"https://login.microsoftonline.com/common/oauth2/logout?post_logout_redirect_uri={logoutRequest}";
-
-    return new RedirectResult(logoutUri);
-  }
-}
+<div style="margin-top:10px" class="form-group">
+    <div class="col-sm-12 controls">
+      <a href="/AzureAD/Login" class="btn btn-primary">Login with Azure AD</a> 
+    </div>
+  </div>
