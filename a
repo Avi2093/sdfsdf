@@ -1,60 +1,9 @@
-public ActionResult AzureADLogin()  
-{
-  
-  string clientId = WebConfigurationManager.AppSettings["ida:ClientId"];
-  string clientSecret = WebConfigurationManager.AppSettings["ida:ClientSecret"]; 
-
-  var authContext = new AuthenticationContext(authority);
-
-  var credential = new ClientCredential(clientId, clientSecret);
-
-  var result = authContext.AcquireTokenAsync(resource, credential).Result;
-
-  if (result == null)  
-  {
-    throw new InvalidOperationException("Failed to obtain the JWT token");
-  }
-            
-  // Add claims based on token
-
-  // Sign in user             
-
-  return RedirectToAction("Index");
-}
-
-public ActionResult LogOff()
-{
-
-  // Existing CSRF check
-  Uri myReferrer = Request.UrlReferrer;
-  string Referer = Convert.ToString(myReferrer);
-
-  if (Referer == null || Referer.ToLower().IndexOf("adusermanager") < 0)
-  {
-    // Existing session clear
-    System.Web.HttpContext.Current.Session.Clear();
-    Session.Abandon();
-    FormsAuthentication.SignOut();
-  }
-  else
-  {
-    // Existing session clear 
-    System.Web.HttpContext.Current.Session.Clear();
-    Session.Abandon();
-    FormsAuthentication.SignOut();
-
-    // Sign out from Azure AD
-    string clientId = WebConfigurationManager.AppSettings["ida:ClientId"];
-    string clientSecret = WebConfigurationManager.AppSettings["ida:ClientSecret"];
-
-    string tenantId = WebConfigurationManager.AppSettings["ida:TenantId"];
-
-    var authContext = new AuthenticationContext(authority);
-
-    var credential = new ClientCredential(clientId, clientSecret);
-
-    authContext.AcquireTokenAsync(resource, credential).Wait();
-  }
-
-  return RedirectToAction("Login", "Account");
-}
+ <appSettings>
+    <!-- Azure AD settings -->
+    <add key="ida:ClientId" value="YOUR_CLIENT_ID" />
+    <add key="ida:ClientSecret" value="YOUR_CLIENT_SECRET" />
+    <add key="ida:TenantId" value="YOUR_TENANT_ID" />
+    <add key="ida:AADInstance" value="https://login.microsoftonline.com/" />
+    <add key="ida:GraphResourceId" value="https://graph.microsoft.com/" /> 
+    <add key="ida:RedirectUri" value="http://localhost:44302/" />
+  </appSettings>
