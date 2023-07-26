@@ -1,5 +1,60 @@
-<div style="margin-top:10px" class="form-group">
-    <div class="col-sm-12 controls">
-      <a href="/AzureAD/Login" class="btn btn-primary">Login with Azure AD</a> 
-    </div>
-  </div>
+public async Task<ActionResult> AzureADLogin()
+{
+  string clientId = ConfigurationManager.AppSettings["ida:ClientId"]; 
+  string clientSecret = ConfigurationManager.AppSettings["ida:ClientSecret"];
+
+  var authContext = new AuthenticationContext(authority);
+
+  var credential = new ClientCredential(clientId, clientSecret);
+
+  var result = await authContext.AcquireTokenAsync(resource, credential);
+
+  if (result == null) 
+  {
+    throw new InvalidOperationException("Failed to obtain the JWT token");
+  }
+              
+  // Add claims based on token
+
+  // Sign in user             
+
+  return RedirectToAction("Index");
+}
+
+
+public async Task<ActionResult> LogOff()
+{
+  // Existing CSRF check
+  Uri myReferrer = Request.UrlReferrer;
+  string Referer = Convert.ToString(myReferrer);
+  
+  if (Referer == null || Referer.ToLower().IndexOf("adusermanager") < 0)
+  {
+    // Existing session clear
+    System.Web.HttpContext.Current.Session.Clear();
+    Session.Abandon();
+    FormsAuthentication.SignOut();
+  }
+  else
+  {
+    // Existing session clear
+    System.Web.HttpContext.Current.Session.Clear();
+    Session.Abandon();
+    FormsAuthentication.SignOut();
+    
+    // Sign out from Azure AD
+    string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
+    string clientSecret = ConfigurationManager.AppSettings["ida:ClientSecret"];
+
+    string tenantId = ConfigurationManager.AppSettings["ida:TenantId"];
+    
+    var authContext = new AuthenticationContext(authority);
+
+    var credential = new ClientCredential(clientId, clientSecret);
+
+    await authContext.AcquireTokenAsync(resource, credential);
+  }
+
+  // Redirect to login page
+  return RedirectToAction("Login", "Account");
+}
