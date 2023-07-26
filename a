@@ -1,19 +1,20 @@
-public async Task<ActionResult> AzureADLogin()
+public ActionResult AzureADLogin()  
 {
-  string clientId = ConfigurationManager.AppSettings["ida:ClientId"]; 
-  string clientSecret = ConfigurationManager.AppSettings["ida:ClientSecret"];
+  
+  string clientId = WebConfigurationManager.AppSettings["ida:ClientId"];
+  string clientSecret = WebConfigurationManager.AppSettings["ida:ClientSecret"]; 
 
   var authContext = new AuthenticationContext(authority);
 
   var credential = new ClientCredential(clientId, clientSecret);
 
-  var result = await authContext.AcquireTokenAsync(resource, credential);
+  var result = authContext.AcquireTokenAsync(resource, credential).Result;
 
-  if (result == null) 
+  if (result == null)  
   {
     throw new InvalidOperationException("Failed to obtain the JWT token");
   }
-              
+            
   // Add claims based on token
 
   // Sign in user             
@@ -21,13 +22,13 @@ public async Task<ActionResult> AzureADLogin()
   return RedirectToAction("Index");
 }
 
-
-public async Task<ActionResult> LogOff()
+public ActionResult LogOff()
 {
+
   // Existing CSRF check
   Uri myReferrer = Request.UrlReferrer;
   string Referer = Convert.ToString(myReferrer);
-  
+
   if (Referer == null || Referer.ToLower().IndexOf("adusermanager") < 0)
   {
     // Existing session clear
@@ -37,24 +38,23 @@ public async Task<ActionResult> LogOff()
   }
   else
   {
-    // Existing session clear
+    // Existing session clear 
     System.Web.HttpContext.Current.Session.Clear();
     Session.Abandon();
     FormsAuthentication.SignOut();
-    
-    // Sign out from Azure AD
-    string clientId = ConfigurationManager.AppSettings["ida:ClientId"];
-    string clientSecret = ConfigurationManager.AppSettings["ida:ClientSecret"];
 
-    string tenantId = ConfigurationManager.AppSettings["ida:TenantId"];
-    
+    // Sign out from Azure AD
+    string clientId = WebConfigurationManager.AppSettings["ida:ClientId"];
+    string clientSecret = WebConfigurationManager.AppSettings["ida:ClientSecret"];
+
+    string tenantId = WebConfigurationManager.AppSettings["ida:TenantId"];
+
     var authContext = new AuthenticationContext(authority);
 
     var credential = new ClientCredential(clientId, clientSecret);
 
-    await authContext.AcquireTokenAsync(resource, credential);
+    authContext.AcquireTokenAsync(resource, credential).Wait();
   }
 
-  // Redirect to login page
   return RedirectToAction("Login", "Account");
 }
